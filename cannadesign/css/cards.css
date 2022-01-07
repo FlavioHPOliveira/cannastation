@@ -1,0 +1,51 @@
+.main {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 4%), 0 1px 1px 0 rgb(0 0 0 / 4%),
+    0 2px 1px -1px rgb(0 0 0 / 4%);
+}
+
+.main__data {
+  width: 950px;
+  padding: 0 24px;
+  margin: auto;
+}
+
+.main__title {
+  font-size: 16px;
+  color: #757575;
+  font-weight: inherit;
+  text-align: left;
+  margin-left: 11px;
+  margin-top: 12px;
+  margin-bottom: 0px;
+  padding: 0px;
+}
+
+.main__cards {
+  margin-top: 0px;
+  font-family: Poppins, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+    Segoe UI Symbol;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.main__cards h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.main__cards h2 {
+  font-size: 1.6em;
+  margin: 2px 0px 0px 2px;
+}
+
+/* Can I do this to color stuff? want use same color for all icons */
+.color__green {
+  color: var(--main-green);
+}
+
+.color__red {
+  color: var(--main-red);
+}

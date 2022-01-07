@@ -1,0 +1,25 @@
+{
+  "name": "cannabackend",
+  "version": "1.0.0",
+  "description": "Backend for Cannastation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlavioHPOliveira/cannabackend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FlavioHPOliveira/cannabackend/issues"
+  },
+  "homepage": "https://github.com/FlavioHPOliveira/cannabackend#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "socket.io": "^4.4.0",
+    "ws": "^8.4.0"
+  }
+}

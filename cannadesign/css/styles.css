@@ -1,0 +1,53 @@
+:root {
+  --main-green: rgb(66, 172, 101);
+  --main-red: rgb(179, 60, 60);
+  --main-bg-color: #005a2d05;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+  font-family: Poppins, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+    Segoe UI Symbol;
+  font-weight: 500;
+}
+
+h2,
+h3,
+ul {
+  margin: 0px;
+  padding: 0px;
+}
+
+main {
+  display: flex;
+  flex-flow: column;
+}
+
+.main {
+  background-color: var(--main-bg-color);
+}
+
+button {
+  border-radius: 2000px;
+  border: 1px solid #e1e1e1;
+  background-color: #fff;
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+  padding: 0px;
+}
+
+.control-cards {
+  display: flex;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 4%), 0 1px 1px 0 rgb(0 0 0 / 4%),
+    0 2px 1px -1px rgb(0 0 0 / 4%);
+}

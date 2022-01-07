@@ -1,0 +1,40 @@
+.status {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: space-around;
+  align-items: center;
+  font-size: 12px;
+
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 4%), 0 1px 1px 0 rgb(0 0 0 / 4%),
+    0 2px 1px -1px rgb(0 0 0 / 4%);
+}
+
+.status__welcome {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.status__welcome h2 {
+  display: flex;
+  flex-flow: wrap column;
+  align-items: center;
+
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.status__welcome h3 {
+  margin-top: 4px;
+  font-size: 16px;
+  color: #757575;
+  font-weight: inherit;
+}
+
+.status__content {
+  margin-bottom: 25px;
+}
+
+.status__content h4 {
+  font-size: 14px;
+  font-weight: inherit;
+}
