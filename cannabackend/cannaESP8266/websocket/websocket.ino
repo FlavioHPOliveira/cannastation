@@ -137,6 +137,7 @@ void loop() {
     // let the websockets client check for incoming messages
     if(client.available()) {
         client.poll();
+        // Serial.println("Client available after pool");
         String temperature = String(dht.readTemperature());
         String airHumidity    = String(dht.readHumidity());
  
@@ -144,9 +145,9 @@ void loop() {
         String soilMoistureString = String(soilMoistureInt);
 
         String JSONType = "{\"type\":\"sensor\"";
-        String sensorJSONTemperature = "\"temperature\":"+temperature+"";
-        String sensorJSONAirHumidity = "\"airHumidity\":"+airHumidity+"";
-        String sensorJSONSoilMoisture = "\"soilMoisture\":"+soilMoistureString+"}";
+        String sensorJSONTemperature = "\"temperature\":\""+temperature+"\"";
+        String sensorJSONAirHumidity = "\"airHumidity\":\""+airHumidity+"\"";
+        String sensorJSONSoilMoisture = "\"soilMoisture\":\""+soilMoistureString+"\"}";
         
         String sensorJSONConcat = JSONType + ","+ sensorJSONTemperature + "," +sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
         //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
@@ -159,8 +160,27 @@ void loop() {
         //deserializeJson(doc, json);
         
         client.send(sensorJSONConcat);
+
+        //Test this later
+        /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
+        //      client.send(JSON.stringify(myObject));
+        // Serial.print(JSON.stringify(myObject));
+        // Serial.println("Got a 
+        
     }else {
         Serial.println("Client not available: ");
+        Serial.println("Reseting client object...");
+        client = {}; // This will reset the client object
+        // try to REconnect to Websockets server
+        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+        //bool connected = client.connect(websockets_connection_string);
+        if(connected) {
+            Serial.println("REConnecetd!");
+            // client.send("Hello Server, we are back online"); doesnt send messages
+        } else {
+            Serial.println("Not REconnected!");
+        }      
     }
+    
     delay(500);
 }
