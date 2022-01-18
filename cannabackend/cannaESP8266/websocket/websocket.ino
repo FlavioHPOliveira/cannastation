@@ -67,8 +67,9 @@ void setup() {
 
     Serial.println("Connected to Wifi, Connecting to server.");
     // try to connect to Websockets server
-    bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-    //bool connected = client.connect(websockets_connection_string);
+    
+    //bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+    bool connected = client.connect("ws://192.168.0.213:3000/?token=123?clientType=board");
     if(connected) {
         Serial.println("Connecetd!");
         client.send("Hello Server");
@@ -79,7 +80,7 @@ void setup() {
     // run callback when messages are received
     client.onMessage([&](WebsocketsMessage message) {
       
-        Serial.print("Got Message: ");
+        Serial.print("(serialPrint)Got Message: ");
         Serial.println(message.data());
 
         JSONVar messageJSON = JSON.parse(message.data());
@@ -172,7 +173,8 @@ void loop() {
         Serial.println("Reseting client object...");
         client = {}; // This will reset the client object
         // try to REconnect to Websockets server
-        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+//        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+        bool connected = client.connect("ws://192.168.0.213:3000/?token=123?clientType=board");
         //bool connected = client.connect(websockets_connection_string);
         if(connected) {
             Serial.println("REConnecetd!");
