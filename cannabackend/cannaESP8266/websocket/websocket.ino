@@ -26,7 +26,7 @@ const char* ssid = "2G_Netvirtua80"; //Enter SSID
 const char* password = "34424595"; //Enter Password
 
 /*Web Socket*/
-const char* websockets_server_host = "192.168.0.5"; //Enter server adress
+const char* websockets_server_host = "192.168.0.213"; //Enter server adress
 const uint16_t websockets_server_port = 3000; // Enter server port
 using namespace websockets;
 WebsocketsClient client;
