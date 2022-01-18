@@ -5,33 +5,48 @@ const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ server:server });
 
-wss.on('connection', function connection(ws) {
+//param format: /?token=123?clientType=board
+
+const getTokenFromURLREQ = (param) =>{
+  try{
+    param = param.replace('/','')
+    const words = param.split('?')
+    //after split: [ '', 'token=123', 'clientType=board' ]
+    //console.log(words)
+    const token = words[1].split('=')[1]
+    const clientType = words[2].split('=')[1]
+    return { 
+      token: token, 
+      clientType: clientType
+    }
+  }catch(e){
+    console.log('Err parsing URLREQ', e)
+  }
+  
+}
+
+wss.on('connection', function connection(ws, req) {
+
   console.log('A new client Connected!');
-  ws.send('Welcome New Client!');
+  console.log(req.url);
+  const tokenAndClientType = getTokenFromURLREQ(req.url);
+  //console.log(token)
+  ws.send(`Welcome New Client, url sent ${req.url}`);
+
+  ws.token = tokenAndClientType.token
+  ws.clientType = tokenAndClientType.clientType
  
   ws.on('message', function incoming(message) {
     //console.log('received: %s', message); ///
-    //ws.send(`Got your message its ${String(message)}`); //is this the same message from who sent it??? guess so.
-    ws.send(String(message)); //is this the same message from who sent it??? guess so.
-    //when I click on lightcontrol, this DOES NOT gets to the server, but it DOES GET TO THE BOARD
+    //ws.send(`Got your message its ${String(message)}`); //Sent confirmation message to whomever sent it.
+    ws.send(String(message)); 
 
-    //broadcast to everyone... in this case, gitthe board and the frontend. both are clients of this websocket.
     wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        console.log('inside broadcast %s', message) // this is from all other senders??? ONLY PRINTS WHEN MORE THAN 1 IS CONNECTED..
-        //when I click on lightcontrol, this message DOES GET TO SERVER, but it DOES NOT GET TO THE BOARD
-
+      //if (client !== ws && client.readyState === WebSocket.OPEN) {
+      if (client.token == ws.token && client.readyState === WebSocket.OPEN) {
+        //console.log('inside broadcast %s', message) // this is from all other senders??? ONLY PRINTS WHEN MORE THAN 1 IS CONNECTED..
         client.send(String(message));
-        // try{
-        //   //const sensorData = JSON.parse(message)
-        //   //console.log(sensorData.temperature, sensorData.airHumidity)
-        //   client.send(String(message));
-        // }catch(e){
-        //   console.log(e)
-        // }
-        //const sensorData = JSON.parse(message)
-        //console.log(sensorData.temperature, sensorData.airHumidity)
-        //client.send(String(message));
+
       }
     });
     
