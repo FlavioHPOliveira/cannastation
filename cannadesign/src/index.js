@@ -13,7 +13,9 @@ import { getFirestore,
   collection, 
   addDoc,
   getDocs,
-  connectFirestoreEmulator
+  connectFirestoreEmulator,
+  query,
+  where
 
 } from "firebase/firestore";
 
@@ -21,17 +23,6 @@ import { getFirestore,
 //import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.3/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
-
-// import {
-//   hideLoginError,
-//   showLoginState,
-//   showLoginForm,
-//   showApp,
-//   showLoginError,
-//   btnLogin,
-//   btnSignup,
-
-// }
 
 
 // Your web app's Firebase configuration
@@ -71,7 +62,7 @@ const addStation = async () =>{
 
 connectAuthEmulator(auth, "http://localhost:9099");
 
-addStation();
+//addStation();
 
 const queryStations = async () =>{
   console.log('entrei get Docs Station')
@@ -80,10 +71,7 @@ const queryStations = async () =>{
     console.log(`${doc.id} => ${doc.data()}`);
   });
 }
-
-queryStations();
-
-
+//queryStations();
 
 const btnLog = document.querySelector("#btnLogin")
 const btnSignUp = document.querySelector("#btnSignUp")
@@ -108,12 +96,14 @@ const createAccount = async () =>{
   try{
     const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
     console.log(userCredential.user)
+    localStorage.setItem("user", user);
+    window.location = 'http://localhost:5501/cannadesign/dist/station.html'
+   
   }catch(e){
     console.log(e)
     alert(e)
   }
 }
-
 
 btnLog.addEventListener('click', loginEmailPassword)
 btnSignUp.addEventListener('click', createAccount)
@@ -123,16 +113,31 @@ const monitorAuthState = async () => {
     //if user signs in... open app
     if(user){
       console.log(user);
-      alert('you are looged in.')
+      console.log(user.uid)
+      alert('you are logged in.')
+      //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
       //show application
       //showLoginState(user)
       //hideLoginError()
+      //const myuser = auth.currentUser;
+      setTokenLocalStorage(user.uid);
+      //localStorage.setItem("token", token);
+      //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
+      // if (myuser) {
+      //   // User is signed in, see docs for a list of available properties
+      //   // https://firebase.google.com/docs/reference/js/firebase.User
+      //   console.log(myuser.displayName)
+      //   // ...
+      // } else {
+      //   console.log("no user is signed in. monitor auth state")
+      // }
+  
 
     }
     //if user signs out, show register form.
     else{
       //show login form
-      alert('you are not logged in.')
+      alert('you are logged out.')
     }
   })
 }
@@ -141,7 +146,25 @@ monitorAuthState();
 
 const logout = async () =>{
   await signOut(auth);
-  alert('you are signOut')
+  //alert('you are signOut')
 }
 
 btnLogout.addEventListener('click',logout)
+
+const setTokenLocalStorage = async (uid) =>{
+  
+  const q = query(collection(db, "station"), where("uID", "==", uid));
+  const querySnapshot = await getDocs(q);
+  let token = ""
+  console.log('here')
+  querySnapshot.forEach((doc) => {
+    // doc.data() is never undefined for query doc snapshots
+    //console.log(doc.id, " => ", doc.data());
+    //console.log(doc.id, " => ", doc.data().token);
+    token = doc.data().token
+  });
+
+  localStorage.setItem("token", token);
+
+}
+

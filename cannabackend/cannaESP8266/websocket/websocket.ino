@@ -26,7 +26,7 @@ const char* ssid = "2G_Netvirtua80"; //Enter SSID
 const char* password = "34424595"; //Enter Password
 
 /*Web Socket*/
-const char* websockets_server_host = "192.168.0.213"; //Enter server adress
+const char* websockets_server_host = "192.168.0.5"; //Enter server adress
 const uint16_t websockets_server_port = 3000; // Enter server port
 using namespace websockets;
 WebsocketsClient client;
@@ -41,8 +41,13 @@ int soilPIN  = A0;           //Connect the soilMoisture output to analogue pin 1
 const int aire = 786;
 const int agua = 377;
 
-/*Flag to send sensor data, only sends data when user is accessing the board control page*/
+/*Flag to send sensor data, only sends data when user is accessing the board control page. 
+NOT BEING USED SO FAR...*/
 int flagSendSensor = 0;
+
+/* Board token that will be populated when user signs in to Wifi */
+String token = "FL123";
+String connectionURL = "ws://192.168.0.213:3000/?token="+token+"?clientType=board";
 
 void setup() {
 
@@ -65,11 +70,12 @@ void setup() {
         return;
     }
 
-    Serial.println("Connected to Wifi, Connecting to server.");
-    // try to connect to Websockets server
+    Serial.print("Connected to Wifi, Connecting to server: ");
+    Serial.println(connectionURL);
     
+    // try to connect to Websockets server
     //bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-    bool connected = client.connect("ws://192.168.0.213:3000/?token=123?clientType=board");
+    bool connected = client.connect(connectionURL);
     if(connected) {
         Serial.println("Connecetd!");
         client.send("Hello Server");
@@ -174,7 +180,7 @@ void loop() {
         client = {}; // This will reset the client object
         // try to REconnect to Websockets server
 //        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-        bool connected = client.connect("ws://192.168.0.213:3000/?token=123?clientType=board");
+        bool connected = client.connect(connectionURL);
         //bool connected = client.connect(websockets_connection_string);
         if(connected) {
             Serial.println("REConnecetd!");

@@ -15,12 +15,14 @@
   <title>Cannastation</title>
 </head>
 <body>
-
   <script>
+
+    var token = localStorage.getItem("token");
+    console.log("The Value Received is " + token);
 
     ////////////////////////////////SOCKET STUFF//////////////////////////////////
     // Create WebSocket connection.
-    const socket = new WebSocket('ws://localhost:3000/?token=123?clientType=app');
+    const socket = new WebSocket(`ws://localhost:3000/?token=${token}?clientType=app`);
 
     const GPIO_LIGHT = 5
     const GPIO_FAN = 4
@@ -411,6 +413,7 @@
   </main>
   
   <footer></footer>
+  
   
 </body>
 </html>
