@@ -62,14 +62,19 @@ int flagSendSensor = 0;
 String token = "FL123";
 String connectionURL = "ws://192.168.0.213:3000/?token="+token+"?clientType=board";
 
-//Light Control Variables
-int lightAuto       = 1
-int lightOn         = 0
-int lightHourOn     = 17
-int lightMinuteOn   = 45 
-int lightHourOf     = 18
-int lightMinuteOff  = 00
+/*GPIO variables*/
+int GPIO_LIGHT   = 5;
+int GPIO_FAN     = 4;
+int GPIO_EXHAUST = 0;
+int GPIO_WATER   = 2;
 
+//Light Control Variables
+int lightAuto       = 1;
+int lightOn         = 0;
+int lightHourOn     = 17;
+int lightMinuteOn   = 52;
+int lightHourOf     = 17;
+int lightMinuteOff  = 53;
 
 void setup() {
 
@@ -170,72 +175,85 @@ void setup() {
 void loop() {
 
       timeClient.update();
-
 //    unsigned long epochTime = timeClient.getEpochTime();
 //    String formattedTime = timeClient.getFormattedTime();
 //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay); 
       int currentHour = timeClient.getHours();
       Serial.print("Hour: ");
-      Serial.println(currentHour);  
-    
+      Serial.println(currentHour);      
       int currentMinute = timeClient.getMinutes();
       Serial.print("Minutes: ");
       Serial.println(currentMinute); 
-       
-//      int currentSecond = timeClient.getSeconds();
-//      Serial.print("Seconds: ");
-//      Serial.println(currentSecond);  
+      int currentSecond = timeClient.getSeconds();
+      Serial.print("Seconds: ");
+      Serial.println(currentSecond);  
 //    
-      delay(500);
+      if( lightAuto == 1 )
+      {
+        if(lightOn == 0){
+          if( currentHour == lightHourOn && currentMinute == lightMinuteOn) {
+            lightOn = 1;
+            pinMode(GPIO_LIGHT, OUTPUT);
+            digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
+          }
+        }
+        else if(lightOn == 1){
+          if( currentHour == lightHourOf && currentMinute == lightMinuteOff) {
+            lightOn = 0;
+            pinMode(GPIO_LIGHT, OUTPUT);
+            digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
+          }
+        }
+      }
   
     // let the websockets client check for incoming messages
-//    if(client.available()) {
-//        client.poll();
-//        // Serial.println("Client available after pool");
-//        String temperature = String(dht.readTemperature());
-//        String airHumidity    = String(dht.readHumidity());
-// 
-//        int soilMoistureInt = map(analogRead(soilPIN), aire, agua, 0, 100);
-//        String soilMoistureString = String(soilMoistureInt);
-//
-//        String JSONType = "{\"type\":\"sensor\"";
-//        String sensorJSONTemperature = "\"temperature\":\""+temperature+"\"";
-//        String sensorJSONAirHumidity = "\"airHumidity\":\""+airHumidity+"\"";
-//        String sensorJSONSoilMoisture = "\"soilMoisture\":\""+soilMoistureString+"\"}";
-//        
-//        String sensorJSONConcat = JSONType + ","+ sensorJSONTemperature + "," +sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
-//        //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
-//        
-//        //Serial.println(sensorJSONConcat);
-//        //DynamicJsonDocument doc(1024);
-//        //doc["temperature"]  = dht_temperature;
-//        //doc["air_humidity"] = dht_humidity;
-//        //String sensorSerialized = doc;
-//        //deserializeJson(doc, json);
-//        
-//        client.send(sensorJSONConcat);
-//
-//        //Test this later
-//        /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
-//        //      client.send(JSON.stringify(myObject));
-//        // Serial.print(JSON.stringify(myObject));
-//        // Serial.println("Got a 
-//        
-//    }else {
-//        Serial.println("Client not available: ");
-//        Serial.println("Reseting client object...");
-//        client = {}; // This will reset the client object
-//        // try to REconnect to Websockets server
-////        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-//        bool connected = client.connect(connectionURL);
-//        //bool connected = client.connect(websockets_connection_string);
-//        if(connected) {
-//            Serial.println("REConnecetd!");
-//            // client.send("Hello Server, we are back online"); doesnt send messages
-//        } else {
-//            Serial.println("Not REconnected!");
-//        }      
-//    }
-//    
-//    delay(500);
+    if(client.available()) {
+        client.poll();
+        // Serial.println("Client available after pool");
+        String temperature = String(dht.readTemperature());
+        String airHumidity    = String(dht.readHumidity());
+ 
+        int soilMoistureInt = map(analogRead(soilPIN), aire, agua, 0, 100);
+        String soilMoistureString = String(soilMoistureInt);
+
+        String JSONType = "{\"type\":\"sensor\"";
+        String sensorJSONTemperature = "\"temperature\":\""+temperature+"\"";
+        String sensorJSONAirHumidity = "\"airHumidity\":\""+airHumidity+"\"";
+        String sensorJSONSoilMoisture = "\"soilMoisture\":\""+soilMoistureString+"\"}";
+        
+        String sensorJSONConcat = JSONType + ","+ sensorJSONTemperature + "," +sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
+        //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
+        
+        //Serial.println(sensorJSONConcat);
+        //DynamicJsonDocument doc(1024);
+        //doc["temperature"]  = dht_temperature;
+        //doc["air_humidity"] = dht_humidity;
+        //String sensorSerialized = doc;
+        //deserializeJson(doc, json);
+        
+        client.send(sensorJSONConcat);
+
+        //Test this later
+        /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
+        //      client.send(JSON.stringify(myObject));
+        // Serial.print(JSON.stringify(myObject));
+        // Serial.println("Got a 
+        
+    }else {
+        Serial.println("Client not available: ");
+        Serial.println("Reseting client object...");
+        client = {}; // This will reset the client object
+        // try to REconnect to Websockets server
+//        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+        bool connected = client.connect(connectionURL);
+        //bool connected = client.connect(websockets_connection_string);
+        if(connected) {
+            Serial.println("REConnecetd!");
+            // client.send("Hello Server, we are back online"); doesnt send messages
+        } else {
+            Serial.println("Not REconnected!");
+        }      
+    }
+    
+    delay(500);
 }
