@@ -63,7 +63,6 @@ const addStation = async () =>{
 connectAuthEmulator(auth, "http://localhost:9099");
 
 //addStation();
-
 const queryStations = async () =>{
   console.log('entrei get Docs Station')
   const querySnapshot = await getDocs(collection(db, "station"));

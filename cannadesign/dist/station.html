@@ -4,14 +4,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" />
   <script src="https://kit.fontawesome.com/ae320467ae.js" crossorigin="anonymous"></script>
-
   <link rel="stylesheet" href="./css/styles.css">
   <link rel="stylesheet" href="./css/header.css">
   <link rel="stylesheet" href="./css/status.css">
   <link rel="stylesheet" href="./css/cards.css">
   <link rel="stylesheet" href="./css/sensor.css">
   <link rel="stylesheet" href="./css/control.css">
-  
+  <link rel="stylesheet" href="./css/modal.css">
   <title>Cannastation</title>
 </head>
 <body>
@@ -242,6 +241,28 @@
 
     // }
 
+    //////////////////////////////// AUTOMATIC LIGHT CONTROL //////////////////////////////////
+    //const btnAutoLight = document.getElementById("auto_light_apply")
+    const sendMessageAutoLight = () => {
+
+      console.log('btn light clicked')
+
+      const lightAutoJSON = {
+        type: "control_auto",
+        control: "light",
+        hourOn: parseInt(document.getElementById("hourOn").value),
+        hourOff: parseInt(document.getElementById("hourOff").value),
+        minuteOn: parseInt(document.getElementById("minuteOn").value),
+        minuteOff: parseInt(document.getElementById("minuteOff").value)
+      }
+
+      const lightAutoStringfy = JSON.stringify(lightAutoJSON)
+      console.log(lightAutoStringfy)
+      socket.send(lightAutoStringfy);
+
+    }
+    
+
 
 </script>
 
@@ -327,7 +348,7 @@
               </ul>
 
               <ul class="control__line">
-                <button class="control__automatic">Automatic</button>
+                <button id="automaticLight" class="control__automatic">Automatic</button>
               </ul>    
             </div>
           </li>
@@ -411,9 +432,37 @@
       </div>
     </section>
   </main>
+
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💡 Light Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON At:</p>
+        <label for="hourOn">Hour:</label>
+        <input type="text" id="hourOn">
+        <label for="minuteOn">Minutes:</label>
+        <input type="text" id="minuteOn">
+
+        <p>Turn OFF At:</p>
+        <label for="hourOff">Hour:</label>
+        <input type="text" id="hourOff">
+        <label for="minuteOff">Minutes:</label>
+        <input type="text" id="minuteOff">
+        <br/>
+        <br/>
+        <button id="auto_light_apply" onClick="sendMessageAutoLight()" class="control__buttonOnOff">Apply</button>
+
+      </div>
+    </div>
+
+  </div>
   
   <footer></footer>
   
-  
+  <script src="modal.js"></script>
 </body>
 </html>

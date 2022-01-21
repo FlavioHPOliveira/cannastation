@@ -39,8 +39,8 @@ const char* ssid = "2G_Netvirtua80"; //Enter SSID
 const char* password = "34424595"; //Enter Password
 
 /*Web Socket*/
-const char* websockets_server_host = "192.168.0.5"; //Enter server adress
-const uint16_t websockets_server_port = 3000; // Enter server port
+//const char* websockets_server_host = "192.168.0.5"; //Enter server adress
+//const uint16_t websockets_server_port = 3000; // Enter server port
 using namespace websockets;
 WebsocketsClient client;
 
@@ -69,7 +69,7 @@ int GPIO_EXHAUST = 0;
 int GPIO_WATER   = 2;
 
 //Light Control Variables
-int lightAuto       = 1;
+int lightAuto       = 0;
 int lightOn         = 0;
 int lightHourOn     = 17;
 int lightMinuteOn   = 52;
@@ -160,8 +160,27 @@ void setup() {
 //            digitalWrite(GPIO, HIGH);
 //          }   
 //          
+        }// ENDIF MANUAL update 
 
-        }// end if message to update control
+        if( messageType == "control_auto"){
+
+          String control = (const char*) messageJSON["control"];
+          lightAuto       = 1;
+          lightHourOn     = (int) messageJSON["hourOn"];
+          lightMinuteOn   = (int) messageJSON["minuteOn"];
+          lightHourOf     = (int) messageJSON["hourOff"];
+          lightMinuteOff  = (int) messageJSON["minuteOff"];
+
+          Serial.print("New Light ON Hour: ");
+          Serial.println(lightHourOn);    
+          Serial.println(lightMinuteOn);    
+          Serial.println(lightHourOf);  
+          Serial.println(lightMinuteOff);  
+          
+          //TODO
+          //save settings on file.
+          
+        }// ENDIF AUTOMATIC update
         
         //atoi doesnt work to convert from JSONVar to INT!!! becareful, in tthe other board it used to work....
         //int value = atoi(controlInfo[keys[1]]);        
@@ -255,5 +274,5 @@ void loop() {
         }      
     }
     
-    delay(500);
+    delay(1000);
 }
