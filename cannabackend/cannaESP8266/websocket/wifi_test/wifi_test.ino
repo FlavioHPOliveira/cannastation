@@ -1,32 +1,42 @@
-#include <ArduinoJson.h> // to deal with JSON FS stuff
-#include <ESP8266WiFi.h>
+#include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+#include <ESP8266WiFi.h>
 
+#ifdef ESP32
+  #include <SPIFFS.h>
+#endif
 
-//Wifi Manager configuration
-//flag for saving data. (Not sure this is necessary)
+#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+
+//define your default values here, if there are different values in config.json, they are overwritten.
+char tokenChar[40];
+//char mqtt_port[6] = "8080";
+//char api_token[34] = "YOUR_API_TOKEN";
+
+//flag for saving data
 bool shouldSaveConfig = false;
+
 //callback notifying us of the need to save config
 void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
 
-/* Board token that will be populated when user signs in to Wifi */
-char tokenChar[40];
-String token = "initToken";
-String connectionURL = "InitURL";
-
-
 void setup() {
-  
-Serial.begin(115200);
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  Serial.println();
 
-  /////////////////////////////READ CONFIGURATION FROM FS JSON///////////////////////////////
+  //clean FS, for testing
+  //SPIFFS.format();
+
+  //read configuration from FS json
   Serial.println("mounting FS...");
+
   if (SPIFFS.begin()) {
     Serial.println("mounted file system");
     if (SPIFFS.exists("/config.json")) {
+      //file exists, reading and loading
       Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
@@ -34,51 +44,68 @@ Serial.begin(115200);
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
+
         configFile.readBytes(buf.get(), size);
 
-        DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
-        //JsonObject& json = 
-        DeserializationError error = deserializeJson(doc, buf.get()); // old way //JsonObject& json = jsonBuffer.parseObject(buf.get());
-        if(error){
-          Serial.print("desirializeJson failed with code: ");
-          Serial.println(error.c_str());
-          return;
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+        DynamicJsonDocument json(1024);
+        auto deserializeError = deserializeJson(json, buf.get());
+        serializeJson(json, Serial);
+        if ( ! deserializeError ) {
+#else
+        DynamicJsonBuffer jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        json.printTo(Serial);
+        if (json.success()) {
+#endif
+          Serial.println("\nparsed json");
+          strcpy(tokenChar, json["tokenChar"]);
+//          strcpy(mqtt_port, json["mqtt_port"]);
+//          strcpy(api_token, json["api_token"]);
+        } else {
+          Serial.println("failed to load json config");
         }
-        else{
-            Serial.println("\nparsed json");
-            strcpy(tokenChar, doc["tokenChar"]);
-//          strcpy(mqtt_server, json["mqtt_server"]);
-            Serial.print("token char:");
-            Serial.println(tokenChar);
-          }
         configFile.close();
       }
     }
   } else {
     Serial.println("failed to mount FS");
   }
-  /////////////////////////////END OF READ CONFIGURATION FROM FS JSON///////////////////////////////
+  //end read
 
-  /////////////////////////////WIFI MANAGER SET UP AND CONNECT///////////////////////////////
-  WiFiManagerParameter tokenWifiParameter("tokenChar", "Station Token", tokenChar, 40);
+  // The extra parameters to be configured (can be either global or just in the setup)
+  // After connecting, parameter.getValue() will get you the configured value
+  // id/name placeholder/prompt default length
+  WiFiManagerParameter custom_tokenChar("tokenChar", "Station Token", tokenChar, 40);
+//  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
+//  WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 32);
 
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
-  
-  //set config save notify callback (is there a case where I dont want it to be saved? not sure this is necessary..)
+
+  //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
+
   //set static ip
-  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-  //wifiManager.autoConnect("Cannastation");
+//  wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
 
   //add all your parameters here
-  wifiManager.addParameter(&tokenWifiParameter);
-  //wifiManager.addParameter(&custom_mqtt_port);
+  wifiManager.addParameter(&custom_tokenChar);
+//  wifiManager.addParameter(&custom_mqtt_port);
+
   //reset settings - for testing
   //wifiManager.resetSettings();
 
+  //sets timeout until configuration portal gets turned off 
+  //useful to make it all retry or go to sleep //in seconds
+  //wifiManager.setTimeout(120);
+
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
+  //if (!wifiManager.autoConnect("Cannastation", "password")) {
   if (!wifiManager.autoConnect("Cannastation")) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
@@ -87,58 +114,63 @@ Serial.begin(115200);
     delay(5000);
   }
   Serial.println("connected to wifi...yeey :)");
-  
-  /////////////////////////////END OF WIFI MANAGER SET UP AND CONNECT///////////////////////////////
 
-  /////////////////////////////SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
+  //if you get here you have connected to the WiFi
+  Serial.println("connected...yeey :)");
+
   //read updated parameters
-  strcpy(tokenChar, tokenWifiParameter.getValue());
+  strcpy(tokenChar, custom_tokenChar.getValue());
+//  strcpy(mqtt_port, custom_mqtt_port.getValue());
+//  strcpy(api_token, custom_api_token.getValue());
+  Serial.println("The values in the file are: ");
+  Serial.println("\tokenChar : " + String(tokenChar));
+//  Serial.println("\tmqtt_port : " + String(mqtt_port));
+//  Serial.println("\tapi_token : " + String(api_token));
+
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+    DynamicJsonDocument json(1024);
+#else
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+#endif
+    json["tokenChar"] = tokenChar;
+//    json["mqtt_port"] = mqtt_port;
+//    json["api_token"] = api_token;
 
-    DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
-
-    doc["tokenChar"] = tokenChar;
-    //    json["mqtt_server"] = mqtt_server;
-//    JsonArray data = doc.createNestedArray("data");
-//    data.add(48.12123)
-//    data.add(2.012312)
-    serializeJson(doc, Serial);
-    Serial.println();
-    serializeJsonPretty(doc, Serial);
-    
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
-    
-//    json.printTo(Serial);
-//    json.printTo(configFile);
-    
+
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+    serializeJson(json, Serial);
+    serializeJson(json, configFile);
+#else
+    json.printTo(Serial);
+    json.printTo(configFile);
+#endif
     configFile.close();
+    //end save
   }
-  /////////////////////////////END OF SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
 
   Serial.println("local ip");
   Serial.println(WiFi.localIP());
-
 }
 
 void loop() {
 
-    // Check WiFi connection status
+  // Check WiFi connection status
+  Serial.println(WiFi.status());
   if (WiFi.isConnected()) {
-  // put your main code here, to run repeatedly:
-      Serial.println("Connected, inside loop");
-
+    Serial.println("connected. local ip:");
+    Serial.println(WiFi.localIP());
+  }else{
+    Serial.println("Not connected");
   }
-  else {
-      Serial.println("WiFi Disconnected");
-    }
-
-  Serial.println("local ip");
-  Serial.println(WiFi.localIP());
   delay(3000);
-  
+  // put your main code here, to run repeatedly:
+
 }

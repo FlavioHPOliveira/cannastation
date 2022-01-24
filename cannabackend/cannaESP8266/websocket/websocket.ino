@@ -10,6 +10,7 @@
   Created 15/02/2019
   https://github.com/gilmaimon/ArduinoWebsockets
 */
+#include <FS.h>                   //this needs to be first, or it all crashes and burns...
 
 #include <ArduinoWebsockets.h>
 //JSON main library
@@ -31,8 +32,6 @@ void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
-
-
 
 //Get Time
 #include <NTPClient.h>
@@ -97,10 +96,17 @@ void setup() {
   Serial.begin(115200);
 
   /////////////////////////////READ CONFIGURATION FROM FS JSON///////////////////////////////
+
+  //clean FS, for testing
+  //SPIFFS.format();
+
+  //read configuration from FS json
   Serial.println("mounting FS...");
+
   if (SPIFFS.begin()) {
     Serial.println("mounted file system");
     if (SPIFFS.exists("/config.json")) {
+      //file exists, reading and loading
       Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
@@ -108,23 +114,27 @@ void setup() {
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
+
         configFile.readBytes(buf.get(), size);
 
-        DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
-        //JsonObject& json = 
-        DeserializationError error = deserializeJson(doc, buf.get()); // old way //JsonObject& json = jsonBuffer.parseObject(buf.get());
-        if(error){
-          Serial.print("desirializeJson failed with code: ");
-          Serial.println(error.c_str());
-          return;
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+        DynamicJsonDocument json(1024);
+        auto deserializeError = deserializeJson(json, buf.get());
+        serializeJson(json, Serial);
+        if ( ! deserializeError ) {
+#else
+        DynamicJsonBuffer jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        json.printTo(Serial);
+        if (json.success()) {
+#endif
+          Serial.println("\nparsed json");
+          strcpy(tokenChar, json["tokenChar"]);
+//          strcpy(mqtt_port, json["mqtt_port"]);
+//          strcpy(api_token, json["api_token"]);
+        } else {
+          Serial.println("failed to load json config");
         }
-        else{
-            Serial.println("\nparsed json");
-            strcpy(tokenChar, doc["tokenChar"]);
-//          strcpy(mqtt_server, json["mqtt_server"]);
-            Serial.print("token char:");
-            Serial.println(tokenChar);
-          }
         configFile.close();
       }
     }
@@ -134,7 +144,7 @@ void setup() {
   /////////////////////////////END OF READ CONFIGURATION FROM FS JSON///////////////////////////////
 
   /////////////////////////////WIFI MANAGER SET UP AND CONNECT///////////////////////////////
-  WiFiManagerParameter tokenWifiParameter("tokenChar", "Station Token", tokenChar, 40);
+  WiFiManagerParameter custom_tokenChar("tokenChar", "Station Token", tokenChar, 40);
 
   WiFiManager wifiManager;
   
@@ -145,7 +155,7 @@ void setup() {
   //wifiManager.autoConnect("Cannastation");
 
   //add all your parameters here
-  wifiManager.addParameter(&tokenWifiParameter);
+  wifiManager.addParameter(&custom_tokenChar);
   //wifiManager.addParameter(&custom_mqtt_port);
   //reset settings - for testing
   //wifiManager.resetSettings();
@@ -157,41 +167,53 @@ void setup() {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
+    ESP.restart();
     delay(5000);
   }
+
   Serial.println("connected to wifi...yeey :)");
   
   /////////////////////////////END OF WIFI MANAGER SET UP AND CONNECT///////////////////////////////
 
   /////////////////////////////SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
-  //read updated parameters
-  strcpy(tokenChar, tokenWifiParameter.getValue());
+    //read updated parameters
+  strcpy(tokenChar, custom_tokenChar.getValue());
+//  strcpy(mqtt_port, custom_mqtt_port.getValue());
+//  strcpy(api_token, custom_api_token.getValue());
+  Serial.println("The values in the file are: ");
+  Serial.println("\tokenChar : " + String(tokenChar));
+//  Serial.println("\tmqtt_port : " + String(mqtt_port));
+//  Serial.println("\tapi_token : " + String(api_token));
+
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+    DynamicJsonDocument json(1024);
+#else
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+#endif
+    json["tokenChar"] = tokenChar;
+//    json["mqtt_port"] = mqtt_port;
+//    json["api_token"] = api_token;
 
-    DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
-
-    doc["tokenChar"] = tokenChar;
-    //    json["mqtt_server"] = mqtt_server;
-//    JsonArray data = doc.createNestedArray("data");
-//    data.add(48.12123)
-//    data.add(2.012312)
-    serializeJson(doc, Serial);
-    Serial.println();
-    serializeJsonPretty(doc, Serial);
-    
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
-    
-//    json.printTo(Serial);
-//    json.printTo(configFile);
-    
+
+#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+    serializeJson(json, Serial);
+    serializeJson(json, configFile);
+#else
+    json.printTo(Serial);
+    json.printTo(configFile);
+#endif
     configFile.close();
+    //end save
   }
+
   /////////////////////////////END OF SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
 
   Serial.println("local ip");
@@ -323,14 +345,13 @@ void loop() {
 //    ESP.reset();
 //    delay(5000);
 //  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("WIFI connected again!");
-    }
-  else {
-    // Connection is just lost
-    ESP.restart();
-  }
+//  if (WiFi.status() == WL_CONNECTED) {
+//      Serial.println("WIFI connected again!");
+//    }
+//  else {
+//    // Connection is just lost
+//    ESP.restart();
+//  }
 
   timeClient.update();
   //    unsigned long epochTime = timeClient.getEpochTime();
