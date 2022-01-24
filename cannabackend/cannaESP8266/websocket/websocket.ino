@@ -8,7 +8,6 @@
   Hardware:
         For this sketch you only need an ESP8266 board.
   Created 15/02/2019
-  By Gil Maimon
   https://github.com/gilmaimon/ArduinoWebsockets
 */
 
@@ -16,15 +15,31 @@
 //JSON main library
 //https://github.com/arduino-libraries/Arduino_JSON/blob/master/examples/JSONObject/JSONObject.ino
 #include <Arduino_JSON.h>
+#include <ArduinoJson.h> // to deal with JSON FS stuff
 #include <ESP8266WiFi.h>
 #include <DHT.h>
 #include <string>
+
+//WifiManager
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+
+//Wifi Manager configuration
+//flag for saving data. (Not sure this is necessary)
+bool shouldSaveConfig = false;
+//callback notifying us of the need to save config
+void saveConfigCallback () {
+  Serial.println("Should save config");
+  shouldSaveConfig = true;
+}
+
+
+
 //Get Time
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
 /*Define NTP Client to get time
-https://randomnerdtutorials.com/esp8266-nodemcu-date-time-ntp-client-server-arduino/
+  https://randomnerdtutorials.com/esp8266-nodemcu-date-time-ntp-client-server-arduino/
 */
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
@@ -35,8 +50,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 
 /* Wifi connection */
-const char* ssid = "2G_Netvirtua80"; //Enter SSID
-const char* password = "34424595"; //Enter Password
+//const char* ssid = "2G_Netvirtua80"; //Enter SSID
+//const char* password = "34424595"; //Enter Password
 
 /*Web Socket*/
 //const char* websockets_server_host = "192.168.0.5"; //Enter server adress
@@ -54,13 +69,14 @@ int soilPIN  = A0;           //Connect the soilMoisture output to analogue pin 1
 const int aire = 786;
 const int agua = 377;
 
-/*Flag to send sensor data, only sends data when user is accessing the board control page. 
-NOT BEING USED SO FAR...*/
+/*Flag to send sensor data, only sends data when user is accessing the board control page.
+  NOT BEING USED SO FAR...*/
 int flagSendSensor = 0;
 
 /* Board token that will be populated when user signs in to Wifi */
-String token = "FL123";
-String connectionURL = "ws://192.168.0.213:3000/?token="+token+"?clientType=board";
+char tokenChar[40];
+String token = "initToken";
+String connectionURL = "InitURL";
 
 /*GPIO variables*/
 int GPIO_LIGHT   = 5;
@@ -78,201 +94,324 @@ int lightMinuteOff  = 53;
 
 void setup() {
 
-    // Initialize a NTPClient to get time
-    timeClient.begin();
-    // Set offset time in seconds to adjust for your timezone, for example: GMT +1 = 3600
-    timeClient.setTimeOffset( -3600 * 3 ); //Brazilian time GMT -3
+  Serial.begin(115200);
 
-    // TESTING signals with led Initialize the LED_BUILTIN pin as an output.
-    //pinMode(LED_BUILTIN, OUTPUT);     
-  
-    Serial.begin(115200);
-    // Connect to wifi
-    WiFi.begin(ssid, password);
+  /////////////////////////////READ CONFIGURATION FROM FS JSON///////////////////////////////
+  Serial.println("mounting FS...");
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    if (SPIFFS.exists("/config.json")) {
+      Serial.println("reading config file");
+      File configFile = SPIFFS.open("/config.json", "r");
+      if (configFile) {
+        Serial.println("opened config file");
+        size_t size = configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+        configFile.readBytes(buf.get(), size);
 
-    // Wait some time to connect to wifi
-    for(int i = 0; i < 10 && WiFi.status() != WL_CONNECTED; i++) {
-        Serial.print(".");
-        delay(1000);
-    }
-
-    // Check if connected to wifi
-    if(WiFi.status() != WL_CONNECTED) {
-        Serial.println("No Wifi!");
-        return;
-    }
-
-    Serial.print("Connected to Wifi, Connecting to server: ");
-    Serial.println(connectionURL);
-    
-    // try to connect to Websockets server
-    //bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-    bool connected = client.connect(connectionURL);
-    if(connected) {
-        Serial.println("Connecetd!");
-        client.send("Hello Server");
-    } else {
-        Serial.println("Not Connected!");
-    }
-    
-    // run callback when messages are received
-    client.onMessage([&](WebsocketsMessage message) {
-      
-        Serial.print("(serialPrint)Got Message: ");
-        Serial.println(message.data());
-
-        JSONVar messageJSON = JSON.parse(message.data());
-        if (JSON.typeof(messageJSON) == "undefined") {
-          Serial.println("Parsing input failed!");
+        DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
+        //JsonObject& json = 
+        DeserializationError error = deserializeJson(doc, buf.get()); // old way //JsonObject& json = jsonBuffer.parseObject(buf.get());
+        if(error){
+          Serial.print("desirializeJson failed with code: ");
+          Serial.println(error.c_str());
           return;
         }
+        else{
+            Serial.println("\nparsed json");
+            strcpy(tokenChar, doc["tokenChar"]);
+//          strcpy(mqtt_server, json["mqtt_server"]);
+            Serial.print("token char:");
+            Serial.println(tokenChar);
+          }
+        configFile.close();
+      }
+    }
+  } else {
+    Serial.println("failed to mount FS");
+  }
+  /////////////////////////////END OF READ CONFIGURATION FROM FS JSON///////////////////////////////
 
-        //Serial.println((const char*) messageJSON["type"]);
-        String messageType = (const char*) messageJSON["type"];
+  /////////////////////////////WIFI MANAGER SET UP AND CONNECT///////////////////////////////
+  WiFiManagerParameter tokenWifiParameter("tokenChar", "Station Token", tokenChar, 40);
 
-        //If it is a message to update the control(output)...
-        if( messageType == "control"){
+  WiFiManager wifiManager;
+  
+  //set config save notify callback (is there a case where I dont want it to be saved? not sure this is necessary..)
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+  //set static ip
+  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+  //wifiManager.autoConnect("Cannastation");
 
-          String control = (const char*) messageJSON["control"];
-          int onOff = (int) messageJSON["OnOff"];
-          int GPIO = (int) (int) messageJSON["GPIO"];
+  //add all your parameters here
+  wifiManager.addParameter(&tokenWifiParameter);
+  //wifiManager.addParameter(&custom_mqtt_port);
+  //reset settings - for testing
+  //wifiManager.resetSettings();
 
-          Serial.println("inside if is control");
-          Serial.print("Control:");
-          Serial.println(control);
-          Serial.print("Turn On or Off:");
-          Serial.println(onOff);
+  //fetches ssid and pass and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //and goes into a blocking loop awaiting configuration
+  if (!wifiManager.autoConnect("Cannastation")) {
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(5000);
+  }
+  Serial.println("connected to wifi...yeey :)");
+  
+  /////////////////////////////END OF WIFI MANAGER SET UP AND CONNECT///////////////////////////////
 
-          //Keyword LOW turns it ON. keyword HIGH turns it Off.
-          //OnOff is 0 or 1. 1 is checked, 0 is not checked.
-          //0 TURNS IT ON, 1 TURNS IT OFF. I am sending it inverted from the application front end..not sure the best way.
-          pinMode(GPIO, OUTPUT);
-          digitalWrite(GPIO, onOff);
-          
-//          if( onOff == 1 ){
-//            Serial.print("turn lights:");
-//            pinMode(GPIO, OUTPUT);
-//            digitalWrite(GPIO, LOW);
-//          }
-//          else if( onOff == 0 ){
-//            Serial.println("turn lights OFF");
-//            pinMode(GPIO, OUTPUT);
-//            digitalWrite(GPIO, HIGH);
-//          }   
-//          
-        }// ENDIF MANUAL update 
+  /////////////////////////////SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
+  //read updated parameters
+  strcpy(tokenChar, tokenWifiParameter.getValue());
+  //save the custom parameters to FS
+  if (shouldSaveConfig) {
+    Serial.println("saving config");
 
-        if( messageType == "control_auto"){
+    DynamicJsonDocument doc(1024); //old way DynamicJsonBuffer
 
-          String control = (const char*) messageJSON["control"];
-          lightAuto       = 1;
-          lightHourOn     = (int) messageJSON["hourOn"];
-          lightMinuteOn   = (int) messageJSON["minuteOn"];
-          lightHourOf     = (int) messageJSON["hourOff"];
-          lightMinuteOff  = (int) messageJSON["minuteOff"];
+    doc["tokenChar"] = tokenChar;
+    //    json["mqtt_server"] = mqtt_server;
+//    JsonArray data = doc.createNestedArray("data");
+//    data.add(48.12123)
+//    data.add(2.012312)
+    serializeJson(doc, Serial);
+    Serial.println();
+    serializeJsonPretty(doc, Serial);
+    
+    File configFile = SPIFFS.open("/config.json", "w");
+    if (!configFile) {
+      Serial.println("failed to open config file for writing");
+    }
+    
+//    json.printTo(Serial);
+//    json.printTo(configFile);
+    
+    configFile.close();
+  }
+  /////////////////////////////END OF SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
 
-          Serial.print("New Light ON Hour: ");
-          Serial.println(lightHourOn);    
-          Serial.println(lightMinuteOn);    
-          Serial.println(lightHourOf);  
-          Serial.println(lightMinuteOff);  
-          
-          //TODO
-          //save settings on file.
-          
-        }// ENDIF AUTOMATIC update
-        
-        //atoi doesnt work to convert from JSONVar to INT!!! becareful, in tthe other board it used to work....
-        //int value = atoi(controlInfo[keys[1]]);        
-        
-    }); //end of client callback
+  Serial.println("local ip");
+  Serial.println(WiFi.localIP());
 
-    /*Initialize temperature and humidity sensor.*/
-    dht.begin();
+  // Initialize a NTPClient to get time
+  timeClient.begin();
+  // Set offset time in seconds to adjust for your timezone, for example: GMT +1 = 3600
+  timeClient.setTimeOffset( -3600 * 3 ); //Brazilian time GMT -3
+
+  // TESTING signals with led Initialize the LED_BUILTIN pin as an output.
+  //pinMode(LED_BUILTIN, OUTPUT);
+
+  // Connect to wifi
+  //WiFi.begin(ssid, password);
+
+  // Wait some time to connect to wifi
+  //for(int i = 0; i < 10 && WiFi.status() != WL_CONNECTED; i++) {
+  //    Serial.print(".");
+  //    delay(1000);
+  //}
+
+  // Check if connected to wifi
+  //    if(WiFi.status() != WL_CONNECTED) {
+  //        Serial.println("No Wifi!");
+  //        return;
+  //    }
+
+  //    Serial.print("Connected to Wifi, Connecting to server: ");
+  //    Serial.println(connectionURL);
+  //
+  // try to connect to Websockets server
+  //bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+  token = tokenChar;
+  Serial.println(token);
+  connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
+  Serial.println(connectionURL);
+  bool connected = client.connect(connectionURL);
+  if (connected) {
+    Serial.println("Connecetd to WS!");
+    client.send("Hello Server");
+  } else {
+    Serial.println("Not Connected to WS!");
+  }
+
+  // run callback when messages are received
+  client.onMessage([&](WebsocketsMessage message) {
+
+    Serial.print("(serialPrint)Got Message: ");
+    Serial.println(message.data());
+
+    JSONVar messageJSON = JSON.parse(message.data());
+    if (JSON.typeof(messageJSON) == "undefined") {
+      Serial.println("Parsing input failed!");
+      return;
+    }
+
+    //Serial.println((const char*) messageJSON["type"]);
+    String messageType = (const char*) messageJSON["type"];
+
+    //If it is a message to update the control(output)...
+    if ( messageType == "control") {
+
+      String control = (const char*) messageJSON["control"];
+      int onOff = (int) messageJSON["OnOff"];
+      int GPIO = (int) (int) messageJSON["GPIO"];
+
+      Serial.println("inside if is control");
+      Serial.print("Control:");
+      Serial.println(control);
+      Serial.print("Turn On or Off:");
+      Serial.println(onOff);
+
+      //Keyword LOW turns it ON. keyword HIGH turns it Off.
+      //OnOff is 0 or 1. 1 is checked, 0 is not checked.
+      //0 TURNS IT ON, 1 TURNS IT OFF. I am sending it inverted from the application front end..not sure the best way.
+      pinMode(GPIO, OUTPUT);
+      digitalWrite(GPIO, onOff);
+
+      //          if( onOff == 1 ){
+      //            Serial.print("turn lights:");
+      //            pinMode(GPIO, OUTPUT);
+      //            digitalWrite(GPIO, LOW);
+      //          }
+      //          else if( onOff == 0 ){
+      //            Serial.println("turn lights OFF");
+      //            pinMode(GPIO, OUTPUT);
+      //            digitalWrite(GPIO, HIGH);
+      //          }
+      //
+    }// ENDIF MANUAL update
+
+    if ( messageType == "control_auto") {
+
+      String control = (const char*) messageJSON["control"];
+      lightAuto       = 1;
+      lightHourOn     = (int) messageJSON["hourOn"];
+      lightMinuteOn   = (int) messageJSON["minuteOn"];
+      lightHourOf     = (int) messageJSON["hourOff"];
+      lightMinuteOff  = (int) messageJSON["minuteOff"];
+
+      Serial.print("New Light ON Hour: ");
+      Serial.println(lightHourOn);
+      Serial.println(lightMinuteOn);
+      Serial.println(lightHourOf);
+      Serial.println(lightMinuteOff);
+
+      //TODO
+      //save settings on file.
+
+    }// ENDIF AUTOMATIC update
+
+    //atoi doesnt work to convert from JSONVar to INT!!! becareful, in tthe other board it used to work....
+    //int value = atoi(controlInfo[keys[1]]);
+
+  }); //end of client callback
+
+  /*Initialize temperature and humidity sensor.*/
+  dht.begin();
 }
 
 void loop() {
-
-      timeClient.update();
-//    unsigned long epochTime = timeClient.getEpochTime();
-//    String formattedTime = timeClient.getFormattedTime();
-//    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay); 
-      int currentHour = timeClient.getHours();
-      Serial.print("Hour: ");
-      Serial.println(currentHour);      
-      int currentMinute = timeClient.getMinutes();
-      Serial.print("Minutes: ");
-      Serial.println(currentMinute); 
-      int currentSecond = timeClient.getSeconds();
-      Serial.print("Seconds: ");
-      Serial.println(currentSecond);  
-//    
-      if( lightAuto == 1 )
-      {
-        if(lightOn == 0){
-          if( currentHour == lightHourOn && currentMinute == lightMinuteOn) {
-            lightOn = 1;
-            pinMode(GPIO_LIGHT, OUTPUT);
-            digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
-          }
-        }
-        else if(lightOn == 1){
-          if( currentHour == lightHourOf && currentMinute == lightMinuteOff) {
-            lightOn = 0;
-            pinMode(GPIO_LIGHT, OUTPUT);
-            digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
-          }
-        }
-      }
   
-    // let the websockets client check for incoming messages
-    if(client.available()) {
-        client.poll();
-        // Serial.println("Client available after pool");
-        String temperature = String(dht.readTemperature());
-        String airHumidity    = String(dht.readHumidity());
- 
-        int soilMoistureInt = map(analogRead(soilPIN), aire, agua, 0, 100);
-        String soilMoistureString = String(soilMoistureInt);
+  //Verify if there is wifi connection and tries to reconnect.
+//  if (!wifiManager.autoConnect("Cannastation")) {
+//    Serial.println("failed to connect and hit timeout");
+//    delay(3000);
+//    //reset and try again, or maybe put it to deep sleep
+//    ESP.reset();
+//    delay(5000);
+//  }
 
-        String JSONType = "{\"type\":\"sensor\"";
-        String sensorJSONTemperature = "\"temperature\":\""+temperature+"\"";
-        String sensorJSONAirHumidity = "\"airHumidity\":\""+airHumidity+"\"";
-        String sensorJSONSoilMoisture = "\"soilMoisture\":\""+soilMoistureString+"\"}";
-        
-        String sensorJSONConcat = JSONType + ","+ sensorJSONTemperature + "," +sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
-        //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
-        
-        //Serial.println(sensorJSONConcat);
-        //DynamicJsonDocument doc(1024);
-        //doc["temperature"]  = dht_temperature;
-        //doc["air_humidity"] = dht_humidity;
-        //String sensorSerialized = doc;
-        //deserializeJson(doc, json);
-        
-        client.send(sensorJSONConcat);
-
-        //Test this later
-        /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
-        //      client.send(JSON.stringify(myObject));
-        // Serial.print(JSON.stringify(myObject));
-        // Serial.println("Got a 
-        
-    }else {
-        Serial.println("Client not available: ");
-        Serial.println("Reseting client object...");
-        client = {}; // This will reset the client object
-        // try to REconnect to Websockets server
-//        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-        bool connected = client.connect(connectionURL);
-        //bool connected = client.connect(websockets_connection_string);
-        if(connected) {
-            Serial.println("REConnecetd!");
-            // client.send("Hello Server, we are back online"); doesnt send messages
-        } else {
-            Serial.println("Not REconnected!");
-        }      
+  if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("WIFI connected again!");
     }
-    
-    delay(1000);
+  else {
+    // Connection is just lost
+    ESP.restart();
+  }
+
+  timeClient.update();
+  //    unsigned long epochTime = timeClient.getEpochTime();
+  //    String formattedTime = timeClient.getFormattedTime();
+  //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
+  int currentHour = timeClient.getHours();
+  Serial.print("Hour: ");
+  Serial.println(currentHour);
+  int currentMinute = timeClient.getMinutes();
+  Serial.print("Minutes: ");
+  Serial.println(currentMinute);
+  int currentSecond = timeClient.getSeconds();
+  Serial.print("Seconds: ");
+  Serial.println(currentSecond);
+  //
+  if ( lightAuto == 1 )
+  {
+    if (lightOn == 0) {
+      if ( currentHour == lightHourOn && currentMinute == lightMinuteOn) {
+        lightOn = 1;
+        pinMode(GPIO_LIGHT, OUTPUT);
+        digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
+      }
+    }
+    else if (lightOn == 1) {
+      if ( currentHour == lightHourOf && currentMinute == lightMinuteOff) {
+        lightOn = 0;
+        pinMode(GPIO_LIGHT, OUTPUT);
+        digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
+      }
+    }
+  }
+
+  // let the websockets client check for incoming messages
+  if (client.available()) {
+    client.poll();
+    // Serial.println("Client available after pool");
+    String temperature = String(dht.readTemperature());
+    String airHumidity    = String(dht.readHumidity());
+
+    int soilMoistureInt = map(analogRead(soilPIN), aire, agua, 0, 100);
+    String soilMoistureString = String(soilMoistureInt);
+
+    String JSONType = "{\"type\":\"sensor\"";
+    String sensorJSONTemperature = "\"temperature\":\"" + temperature + "\"";
+    String sensorJSONAirHumidity = "\"airHumidity\":\"" + airHumidity + "\"";
+    String sensorJSONSoilMoisture = "\"soilMoisture\":\"" + soilMoistureString + "\"}";
+
+    String sensorJSONConcat = JSONType + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
+    //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
+
+    //Serial.println(sensorJSONConcat);
+    //DynamicJsonDocument doc(1024);
+    //doc["temperature"]  = dht_temperature;
+    //doc["air_humidity"] = dht_humidity;
+    //String sensorSerialized = doc;
+    //deserializeJson(doc, json);
+
+    client.send(sensorJSONConcat);
+
+    //Test this later
+    /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
+    //      client.send(JSON.stringify(myObject));
+    // Serial.print(JSON.stringify(myObject));
+    // Serial.println("Got a
+
+  } else {
+    Serial.println("Client not available: ");
+    Serial.println("Reseting client object...");
+    client = {}; // This will reset the client object
+    // try to REconnect to Websockets server
+    //        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+    bool connected = client.connect(connectionURL);
+    //bool connected = client.connect(websockets_connection_string);
+    if (connected) {
+      Serial.println("REConnecetd!");
+      // client.send("Hello Server, we are back online"); doesnt send messages
+    } else {
+      Serial.println("Not REconnected!");
+    }
+  }
+
+  delay(1000);
 }
