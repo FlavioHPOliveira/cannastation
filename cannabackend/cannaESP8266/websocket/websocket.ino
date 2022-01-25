@@ -33,6 +33,8 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
+
+
 //Get Time
 #include <NTPClient.h>
 #include <WiFiUdp.h>
@@ -56,6 +58,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
 //const char* websockets_server_host = "192.168.0.5"; //Enter server adress
 //const uint16_t websockets_server_port = 3000; // Enter server port
 using namespace websockets;
+//library By Gil Maimon https://github.com/gilmaimon/ArduinoWebsockets
 WebsocketsClient client;
 
 /*Sensors*/
@@ -85,11 +88,23 @@ int GPIO_WATER   = 2;
 
 //Light Control Variables
 int lightAuto       = 0;
-int lightOn         = 0;
+int lightOn         = 1;  //0 is ON, 1 is OFF
 int lightHourOn     = 17;
 int lightMinuteOn   = 52;
 int lightHourOf     = 17;
 int lightMinuteOff  = 53;
+
+//Fan Control Variables
+int fanAuto       = 0;
+int fanOn         = 1; 
+
+//Exhaust Control Variables
+int exhaustAuto       = 0;
+int exhaustOn         = 1; 
+
+//Water Control Variables
+int waterAuto       = 0;
+int waterOn         = 1;
 
 void setup() {
 
@@ -118,7 +133,7 @@ void setup() {
         configFile.readBytes(buf.get(), size);
 
 #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-        DynamicJsonDocument json(1024);
+        DynamicJsonDocument json(4096);
         auto deserializeError = deserializeJson(json, buf.get());
         serializeJson(json, Serial);
         if ( ! deserializeError ) {
@@ -129,9 +144,30 @@ void setup() {
         if (json.success()) {
 #endif
           Serial.println("\nparsed json");
+          
           strcpy(tokenChar, json["tokenChar"]);
-//          strcpy(mqtt_port, json["mqtt_port"]);
-//          strcpy(api_token, json["api_token"]);
+          
+          lightAuto = (int) json["lightAuto"];
+          lightOn   = (int) json["lightOn"];
+          pinMode(GPIO_LIGHT, OUTPUT);
+          digitalWrite(GPIO_LIGHT, lightOn); //LOW turns it ON, HIGH turns it OFF
+
+          fanAuto = (int) json["fanAuto"];
+          fanOn   = (int) json["fanOn"];
+          pinMode(GPIO_FAN, OUTPUT);
+          digitalWrite(GPIO_FAN, fanOn); //LOW turns it ON, HIGH turns it OFF
+
+          exhaustAuto = (int) json["exhaustAuto"];
+          exhaustOn   = (int) json["exhaustOn"];
+          pinMode(GPIO_EXHAUST, OUTPUT);
+          digitalWrite(GPIO_EXHAUST, exhaustOn); //LOW turns it ON, HIGH turns it OFF
+
+          waterAuto = (int) json["waterAuto"];
+          waterOn   = (int) json["waterOn"];
+          pinMode(GPIO_WATER, OUTPUT);
+          digitalWrite(GPIO_WATER, waterOn); //LOW turns it ON, HIGH turns it OFF
+          
+
         } else {
           Serial.println("failed to load json config");
         }
@@ -189,14 +225,18 @@ void setup() {
   if (shouldSaveConfig) {
     Serial.println("saving config");
 #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-    DynamicJsonDocument json(1024);
+    DynamicJsonDocument json(4096);
 #else
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
 #endif
     json["tokenChar"] = tokenChar;
-//    json["mqtt_port"] = mqtt_port;
-//    json["api_token"] = api_token;
+
+    //add all controls auto and onoff default values. otherwise it will break when trying to read the FS file without having those settings.
+    saveControlStatusFS( GPIO_LIGHT, lightOn );
+    saveControlStatusFS( GPIO_FAN, fanOn );
+    saveControlStatusFS( GPIO_EXHAUST, exhaustOn );
+    saveControlStatusFS( GPIO_WATER, waterOn );
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
@@ -247,16 +287,30 @@ void setup() {
   //
   // try to connect to Websockets server
   //bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+
+ 
+  
   token = tokenChar;
   Serial.println(token);
   connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
   Serial.println(connectionURL);
+
+  //5 seconds delay to give some time before connecting the WS. didnt work that wel...only on first time! 
+  //without this the WS doesnt connect on first try, then goes to the loop reconnect. It doesnt print on serial anymore and for sensor signal to be sent need to reconnect the board to make it work, super weird.
+  delay(5000);
+  
   bool connected = client.connect(connectionURL);
+  for(int i = 0; i < 10 && !connected; i++) {
+      Serial.print("Trying to connect WS, try:");
+      Serial.println(i+1);
+      delay(2500);
+      connected = client.connect(connectionURL);
+  }
   if (connected) {
     Serial.println("Connecetd to WS!");
     client.send("Hello Server");
   } else {
-    Serial.println("Not Connected to WS!");
+    Serial.println("Could not connected to WS!");
   }
 
   // run callback when messages are received
@@ -292,6 +346,8 @@ void setup() {
       //0 TURNS IT ON, 1 TURNS IT OFF. I am sending it inverted from the application front end..not sure the best way.
       pinMode(GPIO, OUTPUT);
       digitalWrite(GPIO, onOff);
+      //save new GPIO status on the board FS.
+      saveControlStatusFS(GPIO, onOff);
 
       //          if( onOff == 1 ){
       //            Serial.print("turn lights:");
@@ -321,8 +377,35 @@ void setup() {
       Serial.println(lightHourOf);
       Serial.println(lightMinuteOff);
 
-      //TODO
-      //save settings on file.
+      //SAVE AUTO CONTORL SETTINGS TO THE BOARD.
+          Serial.println("saving control auto to config file");
+      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+          DynamicJsonDocument jsonAutoControl(4096);
+      #else
+          DynamicJsonBuffer jsonBuffer;
+          JsonObject& jsonAutoControl = jsonBuffer.createObject();
+      #endif
+          jsonAutoControl["lightAuto"] = lightAuto;
+          jsonAutoControl["lightOn"]   = lightOn;
+          jsonAutoControl["lightHourOn"] = lightHourOn;
+          jsonAutoControl["lightMinuteOn"] = lightMinuteOn;
+          jsonAutoControl["lightHourOf"] = lightHourOf;
+          jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
+      
+          File configFile = SPIFFS.open("/config.json", "w");
+          if (!configFile) {
+            Serial.println("failed to open config file for writing auto control");
+          }
+      
+      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+          serializeJson(jsonAutoControl, Serial);
+          serializeJson(jsonAutoControl, configFile);
+      #else
+          jsonAutoControl.printTo(Serial);
+          jsonAutoControl.printTo(configFile);
+      #endif
+          configFile.close();
+          //end save
 
     }// ENDIF AUTOMATIC update
 
@@ -336,36 +419,20 @@ void setup() {
 }
 
 void loop() {
-  
-  //Verify if there is wifi connection and tries to reconnect.
-//  if (!wifiManager.autoConnect("Cannastation")) {
-//    Serial.println("failed to connect and hit timeout");
-//    delay(3000);
-//    //reset and try again, or maybe put it to deep sleep
-//    ESP.reset();
-//    delay(5000);
-//  }
-//  if (WiFi.status() == WL_CONNECTED) {
-//      Serial.println("WIFI connected again!");
-//    }
-//  else {
-//    // Connection is just lost
-//    ESP.restart();
-//  }
 
   timeClient.update();
   //    unsigned long epochTime = timeClient.getEpochTime();
   //    String formattedTime = timeClient.getFormattedTime();
   //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
   int currentHour = timeClient.getHours();
-  Serial.print("Hour: ");
-  Serial.println(currentHour);
+//  Serial.print("Hour: ");
+//  Serial.println(currentHour);
   int currentMinute = timeClient.getMinutes();
-  Serial.print("Minutes: ");
-  Serial.println(currentMinute);
+//  Serial.print("Minutes: ");
+//  Serial.println(currentMinute);
   int currentSecond = timeClient.getSeconds();
-  Serial.print("Seconds: ");
-  Serial.println(currentSecond);
+//  Serial.print("Seconds: ");
+//  Serial.println(currentSecond);
   //
   if ( lightAuto == 1 )
   {
@@ -384,11 +451,14 @@ void loop() {
       }
     }
   }
-
+  //Serial.println("Print before client pool");
+  client.poll();
+  //Serial.println("Client available after pool");
   // let the websockets client check for incoming messages
   if (client.available()) {
-    client.poll();
-    // Serial.println("Client available after pool");
+    //Serial.println("Print before client pool");
+    //client.poll();
+    //Serial.println("Client available after pool");
     String temperature = String(dht.readTemperature());
     String airHumidity    = String(dht.readHumidity());
 
@@ -402,8 +472,8 @@ void loop() {
 
     String sensorJSONConcat = JSONType + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
     //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
-
-    //Serial.println(sensorJSONConcat);
+    Serial.print("*Serial:Sensor data ");
+    Serial.println(sensorJSONConcat);
     //DynamicJsonDocument doc(1024);
     //doc["temperature"]  = dht_temperature;
     //doc["air_humidity"] = dht_humidity;
@@ -418,21 +488,81 @@ void loop() {
     // Serial.print(JSON.stringify(myObject));
     // Serial.println("Got a
 
-  } else {
-    Serial.println("Client not available: ");
-    Serial.println("Reseting client object...");
-    client = {}; // This will reset the client object
-    // try to REconnect to Websockets server
-    //        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-    bool connected = client.connect(connectionURL);
-    //bool connected = client.connect(websockets_connection_string);
-    if (connected) {
-      Serial.println("REConnecetd!");
-      // client.send("Hello Server, we are back online"); doesnt send messages
-    } else {
-      Serial.println("Not REconnected!");
-    }
-  }
+  } 
+//else {
+//    Serial.println("Client not available: ");
+//    Serial.println("Reseting client object...");
+//    client = {}; // This will reset the client object
+//    // try to REconnect to Websockets server
+//    //        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+//    bool connected = client.connect(connectionURL); 
+//    //bool connected = client.connect(websockets_connection_string);
+//    if (connected) {
+//      Serial.println("REConnecetd!");
+//      // client.send("Hello Server, we are back online"); doesnt send messages
+//    } else {
+//      Serial.println("Not REconnected!");
+//    }
+//  }
 
   delay(1000);
+}
+
+
+
+///////HELPER FUNCTIONS/////
+
+// ON = 0, OFF = 1
+void saveControlStatusFS (int GPIO, int onOff){
+     Serial.println("saving control manual to config file");
+     Serial.print("GPIO:");
+     Serial.println(GPIO);
+     Serial.print("onOff:");
+     Serial.println(onOff);
+      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+          DynamicJsonDocument jsonControl(4096);
+      #else
+          DynamicJsonBuffer jsonBuffer;
+          JsonObject& jsonControl = jsonBuffer.createObject();
+      #endif
+      
+          //using v6 only
+          File file = SPIFFS.open("/config.json", "r");
+          deserializeJson(jsonControl, file);
+          file.close();
+          
+          if( GPIO == GPIO_LIGHT ){
+            jsonControl["lightOn"]   = onOff;
+          }else if( GPIO == GPIO_FAN){
+            jsonControl["fanOn"]   = onOff;
+          }else if( GPIO == GPIO_EXHAUST){
+            jsonControl["exhaustOn"]   = onOff;
+          }else if( GPIO == GPIO_WATER){
+            jsonControl["waterOn"]   = onOff;
+          }
+          
+//          File configFile = SPIFFS.open("/config.json", "w");
+//          if (!configFile) {
+//            Serial.println("failed to open config file for writing auto control");
+//          }
+          file = SPIFFS.open("/config.json", "w");
+          serializeJson(jsonControl, file);
+          file.close();
+          
+//      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+//          serializeJson(jsonControl, Serial);
+//          serializeJson(jsonControl, file);
+//      #else
+//          jsonControl.printTo(Serial);
+//          jsonControl.printTo(file);
+//      #endif
+//          file.close();
+          //end save
+          //TODO
+          //aparently, in order to update one field, needo to rewrite the whole config file
+          //DynamicJsonDocument jsonControl(4096);
+          //doc["key"] = "value";
+}
+
+void setControlOnOff (int GPIO, int OnOff){
 }
