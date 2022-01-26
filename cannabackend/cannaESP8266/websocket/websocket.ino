@@ -432,27 +432,39 @@ void loop() {
   //    String formattedTime = timeClient.getFormattedTime();
   //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
   int currentHour = timeClient.getHours();
-//  Serial.print("Hour: ");
-//  Serial.println(currentHour);
+  Serial.println("Curr Time:");
+  //Serial.print("Hour: ");
+  Serial.print(currentHour);
+  Serial.print(":");
   int currentMinute = timeClient.getMinutes();
 //  Serial.print("Minutes: ");
-//  Serial.println(currentMinute);
+  Serial.println(currentMinute);
+  Serial.print(":");
   int currentSecond = timeClient.getSeconds();
-//  Serial.print("Seconds: ");
-//  Serial.println(currentSecond);
+  //Serial.print("Seconds: ");
+  Serial.println(currentSecond);
+  Serial.println("..");
+  
   //
   if ( lightAuto == 1 )
   {
-    if (lightOn == 0) {
+
+    Serial.println("inside lightAuto == 1. Print LightHourOn:LightMinutesOn");
+    Serial.print(lightHourOn);
+    Serial.print(":");
+    Serial.println(lightMinuteOn);
+    if (lightOn == 1) { //if lights are Off....
       if ( currentHour == lightHourOn && currentMinute == lightMinuteOn) {
-        lightOn = 1;
+        Serial.println("Insisde Light On == 0 and hour minutes are equal");
+        lightOn = 0;
         pinMode(GPIO_LIGHT, OUTPUT);
         digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
       }
     }
-    else if (lightOn == 1) {
-      if ( currentHour == lightHourOf && currentMinute == lightMinuteOff) {
-        lightOn = 0;
+    else if (lightOn == 0) { //if lights are ON....
+      if ( currentHour == lightHourOf && currentMinute == lightMinuteOff) {        
+        Serial.println("Insisde Light On == 1 and hour minutes are equal");
+        lightOn = 1;
         pinMode(GPIO_LIGHT, OUTPUT);
         digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
       }
