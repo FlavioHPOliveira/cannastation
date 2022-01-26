@@ -13,6 +13,8 @@ import { getFirestore,
   collection, 
   addDoc,
   getDocs,
+  doc,
+  setDoc,
   connectFirestoreEmulator,
   query,
   where
@@ -27,7 +29,7 @@ import { getFirestore,
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD1P_W4y62l8-OESX1jdW-ffuz4u  b3KE2M",
+  apiKey: "AIzaSyD1P_W4y62l8-OESX1jdW-ffuz4ub3KE2M",
   authDomain: "cannafirebase.firebaseapp.com",
   projectId: "cannafirebase",
   storageBucket: "cannafirebase.appspot.com",
@@ -39,73 +41,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp)
+console.log("teste", auth)
 
 const db = getFirestore(firebaseApp);
 
-connectFirestoreEmulator(db, 'localhost', 8080);
-
-const addStation = async () =>{
-  console.log('entrei add Station')
-
-  try {
-    const docRef = await addDoc(collection(db, "station"), {
-      email: "test@gmail.com",
-      token: "token123",
-      uID: "123456"
-    });
-    console.log("New Station Doc Inserted: ", docRef.id);
-  } catch (e) {
-    console.error("Error adding document: ", e);
-  }
-
-}
-
-connectAuthEmulator(auth, "http://localhost:9099");
-
-//addStation();
-const queryStations = async () =>{
-  console.log('entrei get Docs Station')
-  const querySnapshot = await getDocs(collection(db, "station"));
-  querySnapshot.forEach((doc) => {
-    console.log(`${doc.id} => ${doc.data()}`);
-  });
-}
-//queryStations();
-
-const btnLog = document.querySelector("#btnLogin")
-const btnSignUp = document.querySelector("#btnSignUp")
-const btnLogout = document.querySelector("#btnLogout")
-//console.log(btnLog)
-
-const loginEmailPassword = async () => {
-  const loginEmail = document.querySelector("#txtEmail").value;
-  const loginPwd = document.querySelector("#txtPwd").value;
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPwd)
-    console.log(userCredential.user)
-  }catch(e){
-    console.log(e)
-    alert(e)
-  }
-}
-
-const createAccount = async () =>{
-  const loginEmail = document.querySelector("#txtEmail").value;
-  const loginPwd = document.querySelector("#txtPwd").value;
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
-    console.log(userCredential.user)
-    localStorage.setItem("user", user);
-    window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-   
-  }catch(e){
-    console.log(e)
-    alert(e)
-  }
-}
-
-btnLog.addEventListener('click', loginEmailPassword)
-btnSignUp.addEventListener('click', createAccount)
+//connectFirestoreEmulator(db, 'localhost', 8080);
+//connectAuthEmulator(auth, "http://localhost:9099");
 
 const monitorAuthState = async () => {
   onAuthStateChanged(auth, user => {
@@ -131,12 +72,14 @@ const monitorAuthState = async () => {
       //   console.log("no user is signed in. monitor auth state")
       // }
   
-
     }
     //if user signs out, show register form.
     else{
       //show login form
-      alert('you are logged out.')
+      if(window.location.pathname !== "/cannadesign/login.html"){
+        window.location.href = "/cannadesign/login.html"
+      }
+      console.log('you are logged out.')
     }
   })
 }
@@ -147,8 +90,6 @@ const logout = async () =>{
   await signOut(auth);
   //alert('you are signOut')
 }
-
-btnLogout.addEventListener('click',logout)
 
 const setTokenLocalStorage = async (uid) =>{
   
@@ -167,3 +108,4 @@ const setTokenLocalStorage = async (uid) =>{
 
 }
 
+export { doc, setDoc, collection, auth, logout, db };

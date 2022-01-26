@@ -349,7 +349,7 @@ void setup() {
       //save new GPIO status on the board FS.
       saveControlStatusFS(GPIO, onOff);
 
-      //SET control variable.
+      //SET control variables.
      if( GPIO == GPIO_LIGHT ){
         lightAuto = 0;
         lightOn   = onOff; 
@@ -459,6 +459,9 @@ void loop() {
         lightOn = 0;
         pinMode(GPIO_LIGHT, OUTPUT);
         digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
+        //save on board fs
+        //EXPLODES....
+        //saveControlStatusFS(GPIO_LIGHT, lightOn);
       }
     }
     else if (lightOn == 0) { //if lights are ON....
@@ -467,6 +470,9 @@ void loop() {
         lightOn = 1;
         pinMode(GPIO_LIGHT, OUTPUT);
         digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
+        //save on board fs
+        //EXPLODES....
+        //saveControlStatusFS(GPIO_LIGHT, lightOn);
       }
     }
   }

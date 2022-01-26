@@ -4,17 +4,25 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" />
   <script src="https://kit.fontawesome.com/ae320467ae.js" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="./css/styles.css">
-  <link rel="stylesheet" href="./css/header.css">
-  <link rel="stylesheet" href="./css/status.css">
-  <link rel="stylesheet" href="./css/cards.css">
-  <link rel="stylesheet" href="./css/sensor.css">
-  <link rel="stylesheet" href="./css/control.css">
-  <link rel="stylesheet" href="./css/modal.css">
+  <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="src/css/header.css">
+  <link rel="stylesheet" href="src/css/status.css">
+  <link rel="stylesheet" href="src/css/cards.css">
+  <link rel="stylesheet" href="src/css/sensor.css">
+  <link rel="stylesheet" href="src/css/control.css">
+  <link rel="stylesheet" href="src/css/modal.css">
   <title>Cannastation</title>
 </head>
 <body>
   <script>
+
+  // auth().onAuthStateChanged(async (user) => {
+  //       // console.log('< FETCH USER MIDDLEWARE > ', user)
+  //       if (user) resolve(user);
+  //       if (!user) resolve({});
+  //     });
+
+    
 
     var token = localStorage.getItem("token");
     console.log("The Value Received is " + token);
@@ -281,11 +289,10 @@
     }
     
 
-
 </script>
 
   <header>
-    <a class="header__logo" href=""><img src="img/green-cannabis-leaf-simple-drawing-vector.jpg" alt="logo"></img>Cannastation</a>
+    <a class="header__logo" href=""><img src="src/img/green-cannabis-leaf-simple-drawing-vector.jpg" alt="logo"></img>Cannastation</a>
     <nav>
         <ul class="nav__links">
             <li><i class="fas fa-info-circle nav__icon"></i>How it works</li>
@@ -484,6 +491,7 @@
   
   <footer></footer>
   
-  <script src="modal.js"></script>
+  <script src='dist/station.bundle.js'></script>
+
 </body>
 </html>
