@@ -313,7 +313,7 @@ void setup() {
     Serial.println("Could not connected to WS!");
   }
 
-  // run callback when messages are received
+  /////////////////////////////////////////////RECEIVE WS MESSAGES////////////////////////////////////////////////////
   client.onMessage([&](WebsocketsMessage message) {
 
     Serial.print("(serialPrint)Got Message: ");
@@ -328,7 +328,7 @@ void setup() {
     //Serial.println((const char*) messageJSON["type"]);
     String messageType = (const char*) messageJSON["type"];
 
-    //If it is a message to update the control(output)...
+    // MANUAL CONTROL UPDATE
     if ( messageType == "control") {
 
       String control = (const char*) messageJSON["control"];
@@ -349,19 +349,24 @@ void setup() {
       //save new GPIO status on the board FS.
       saveControlStatusFS(GPIO, onOff);
 
-      //          if( onOff == 1 ){
-      //            Serial.print("turn lights:");
-      //            pinMode(GPIO, OUTPUT);
-      //            digitalWrite(GPIO, LOW);
-      //          }
-      //          else if( onOff == 0 ){
-      //            Serial.println("turn lights OFF");
-      //            pinMode(GPIO, OUTPUT);
-      //            digitalWrite(GPIO, HIGH);
-      //          }
-      //
-    }// ENDIF MANUAL update
+      //SET control variable.
+     if( GPIO == GPIO_LIGHT ){
+        lightAuto = 0;
+        lightOn   = onOff; 
+      }else if( GPIO == GPIO_FAN){
+        fanAuto   = 0;
+        fanOn     = onOff; 
+      }else if( GPIO == GPIO_EXHAUST){
+        exhaustAuto   = 0;
+        exhaustOn     = onOff; 
+      }else if( GPIO == GPIO_WATER){
+        waterAuto   = 0;
+        waterOn     = onOff; 
+      }
+      
+    }// ENDIF MANUAL CONTROL UPDATE
 
+    //AUTO CONTROL UPDATE
     if ( messageType == "control_auto") {
 
       String control = (const char*) messageJSON["control"];
@@ -377,7 +382,7 @@ void setup() {
       Serial.println(lightHourOf);
       Serial.println(lightMinuteOff);
 
-      //SAVE AUTO CONTORL SETTINGS TO THE BOARD.
+      //SAVE AUTO CONTORL SETTINGS TO THE BOARD FS.
           Serial.println("saving control auto to config file");
       #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
           DynamicJsonDocument jsonAutoControl(4096);
@@ -413,6 +418,8 @@ void setup() {
     //int value = atoi(controlInfo[keys[1]]);
 
   }); //end of client callback
+
+  /////////////////////////////////////////////END OF WS RECEIVE MESSAGES////////////////////////////////////////////////////
 
   /*Initialize temperature and humidity sensor.*/
   dht.begin();
@@ -451,14 +458,16 @@ void loop() {
       }
     }
   }
-  //Serial.println("Print before client pool");
+  
   client.poll();
-  //Serial.println("Client available after pool");
+  
   // let the websockets client check for incoming messages
   if (client.available()) {
     //Serial.println("Print before client pool");
     //client.poll();
     //Serial.println("Client available after pool");
+
+    ///////////////////////////////////////////// SEND SENSOR DATA /////////////////////////////////////////////
     String temperature = String(dht.readTemperature());
     String airHumidity    = String(dht.readHumidity());
 
@@ -471,39 +480,34 @@ void loop() {
     String sensorJSONSoilMoisture = "\"soilMoisture\":\"" + soilMoistureString + "\"}";
 
     String sensorJSONConcat = JSONType + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
-    //char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
+    
     Serial.print("*Serial:Sensor data ");
     Serial.println(sensorJSONConcat);
-    //DynamicJsonDocument doc(1024);
-    //doc["temperature"]  = dht_temperature;
-    //doc["air_humidity"] = dht_humidity;
-    //String sensorSerialized = doc;
-    //deserializeJson(doc, json);
 
     client.send(sensorJSONConcat);
+    ///////////////////////////////////////////// END OF SEND SENSOR DATA /////////////////////////////////////////////
 
-    //Test this later
-    /// https://github.com/gilmaimon/ArduinoWebsockets/issues/75
-    //      client.send(JSON.stringify(myObject));
-    // Serial.print(JSON.stringify(myObject));
-    // Serial.println("Got a
+    ///////////////////////////////////////////// SEND CONTROL DATA /////////////////////////////////////////////
+
+    DynamicJsonDocument controlDoc(1024);
+    controlDoc["type"] = "controlState";
+    controlDoc["lightAuto"] = lightAuto; 
+    controlDoc["lightOn"] = lightOn;
+    controlDoc["fanAuto"] = fanAuto; 
+    controlDoc["fanOn"] = fanOn;
+    controlDoc["exhaustAuto"] = exhaustAuto; 
+    controlDoc["exhaustOn"] = exhaustOn;
+    controlDoc["waterAuto"] = waterAuto; 
+    controlDoc["waterOn"] = waterOn;
+    serializeJson(controlDoc, Serial);
+    
+    String controlString;
+    serializeJson(controlDoc, controlString);
+    client.send(controlString);
+
+    ///////////////////////////////////////////// END OF SEND CONTROL DATA /////////////////////////////////////////////
 
   } 
-//else {
-//    Serial.println("Client not available: ");
-//    Serial.println("Reseting client object...");
-//    client = {}; // This will reset the client object
-//    // try to REconnect to Websockets server
-//    //        bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-//    bool connected = client.connect(connectionURL); 
-//    //bool connected = client.connect(websockets_connection_string);
-//    if (connected) {
-//      Serial.println("REConnecetd!");
-//      // client.send("Hello Server, we are back online"); doesnt send messages
-//    } else {
-//      Serial.println("Not REconnected!");
-//    }
-//  }
 
   delay(1000);
 }
