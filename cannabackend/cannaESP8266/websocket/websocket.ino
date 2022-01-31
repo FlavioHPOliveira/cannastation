@@ -233,29 +233,40 @@ void setup() {
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
 #endif
-    json["tokenChar"] = tokenChar;
 
-    //add all controls auto and onoff default values. otherwise it will break when trying to read the FS file without having those settings.
-    saveControlStatusFS( GPIO_LIGHT, lightOn );
-    saveControlStatusFS( GPIO_FAN, fanOn );
-    saveControlStatusFS( GPIO_EXHAUST, exhaustOn );
-    saveControlStatusFS( GPIO_WATER, waterOn );
+    json["tokenChar"] = tokenChar;
+    //Save control default values on the board.
+     
+    json["lightOn"]     = lightOn;
+    json["lightAuto"]   = lightAuto;
+    json["fanOn"]       = fanOn;
+    json["fanAuto"]     = fanAuto;
+    json["exhaustOn"]   = exhaustOn;
+    json["exhaustAuto"] = exhaustAuto;
+    json["waterOn"]     = waterOn;
+    json["waterAuto"]   = waterAuto;
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
-    }
+    }  
+    
+    #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+        serializeJson(json, Serial);
+        serializeJson(json, configFile);
+    #else
+        json.printTo(Serial);
+        json.printTo(configFile);
+    #endif
+        configFile.close();
+        //end save
+      }
 
-#ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-    serializeJson(json, Serial);
-    serializeJson(json, configFile);
-#else
-    json.printTo(Serial);
-    json.printTo(configFile);
-#endif
-    configFile.close();
-    //end save
-  }
+    //add all controls auto and onoff default values. otherwise it will break when trying to read the FS file without having those settings.
+//    saveControlStatusFS( GPIO_LIGHT, lightOn );
+//    saveControlStatusFS( GPIO_FAN, fanOn );
+//    saveControlStatusFS( GPIO_EXHAUST, exhaustOn );
+//    saveControlStatusFS( GPIO_WATER, waterOn );
 
   /////////////////////////////END OF SAVING WIFI MANAGER PARATEMERS TO THE BOARD FS///////////////////////////////
 
@@ -567,6 +578,7 @@ void saveControlStatusFS (int GPIO, int onOff){
 //          }
           file = SPIFFS.open("/config.json", "w");
           serializeJson(jsonControl, file);
+          serializeJson(jsonControl, Serial);
           file.close();
           
 //      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
