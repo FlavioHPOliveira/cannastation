@@ -1,24 +1,31 @@
 // Import the functions you need from the SDKs you need
  
-const { doc, setDoc, auth, logout, db } = require("./auth.js")
-import { initializeApp } from "firebase/app";
-import { getAuth, 
-  connectAuthEmulator, 
-  signInWithEmailAndPassword, 
+const { doc, 
+  setDoc, 
+  auth, 
+  logout,
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "firebase/auth";
+  db } = require("./auth.js")
 
-import { getFirestore,
-  collection, 
-  addDoc,
-  getDocs,
-  connectFirestoreEmulator,
-  query,
-  where
+// import { initializeApp } from "firebase/app";
+// import { getAuth, 
+//   connectAuthEmulator, 
+//   signInWithEmailAndPassword, 
+//   createUserWithEmailAndPassword,
+//   onAuthStateChanged,
+//   signOut
+// } from "firebase/auth";
 
-} from "firebase/firestore";
+// import { getFirestore,
+//   collection, 
+//   addDoc,
+//   getDocs,
+//   connectFirestoreEmulator,
+//   query,
+//   where
+
+// } from "firebase/firestore";
 
 console.log("teste 2 db:", db)
 
@@ -54,23 +61,22 @@ const createAccount = async () =>{
     //localStorage.setItem("user", userCredential.user);
 
     try {
-
-      // await setDoc(doc(db, "cities", "LA"), {
-      //   name: "Los Angeles",
-      //   state: "CA",
-      //   country: "USA"
-      // });
+      //TODO
+      //Create mechanism to generate tokens when user buys a board.
+      const boardToken = userCredential.user.email.substring(0,3) + userCredential.user.uid.substring(0,3)
+      console.log("boardToken: ", boardToken)
       const docRef = await setDoc(doc(db, "users", userCredential.user.uid), {
         email: userCredential.user.email,
         uID: userCredential.user.uid,
-        boards: [],
+        boardDefault: boardToken,
+        boards: [boardToken]
       });
       console.log("New Station Doc Inserted: ", docRef.id);
     } catch (e) {
       console.error("Error adding document: ", e);
     }
 
-    window.location.href = 'cannadesign/station.html'
+    window.location.href = 'station.html'
 
     //TODO
     //salvar ussuario na collection do usuario, com todos usuarios que vem do 

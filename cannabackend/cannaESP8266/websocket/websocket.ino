@@ -177,6 +177,7 @@ void setup() {
   } else {
     Serial.println("failed to mount FS");
   }
+ 
   /////////////////////////////END OF READ CONFIGURATION FROM FS JSON///////////////////////////////
 
   /////////////////////////////WIFI MANAGER SET UP AND CONNECT///////////////////////////////
@@ -225,7 +226,7 @@ void setup() {
   if (shouldSaveConfig) {
     Serial.println("saving config");
 #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-    DynamicJsonDocument json(4096);
+    DynamicJsonDocument json(2048);
 #else
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
@@ -328,7 +329,7 @@ void setup() {
     //Serial.println((const char*) messageJSON["type"]);
     String messageType = (const char*) messageJSON["type"];
 
-    // MANUAL CONTROL UPDATE
+     ///////////////////////////////////////////// MANUAL CONTROL UPDATE ////////////////////////////////////////////////////
     if ( messageType == "control") {
 
       String control = (const char*) messageJSON["control"];
@@ -364,9 +365,9 @@ void setup() {
         waterOn     = onOff; 
       }
       
-    }// ENDIF MANUAL CONTROL UPDATE
+    }///////////////////////////////////////////// END MANUAL CONTROL UPDATE ////////////////////////////////////////////////////
 
-    //AUTO CONTROL UPDATE
+    ////////////////////////////////////////////// AUTOMATIC CONTROL UPDATE ////////////////////////////////////////////////////
     if ( messageType == "control_auto") {
 
       String control = (const char*) messageJSON["control"];
@@ -382,37 +383,31 @@ void setup() {
       Serial.println(lightHourOf);
       Serial.println(lightMinuteOff);
 
-      //SAVE AUTO CONTORL SETTINGS TO THE BOARD FS.
-          Serial.println("saving control auto to config file");
       #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-          DynamicJsonDocument jsonAutoControl(4096);
+          DynamicJsonDocument jsonAutoControl(2048);
       #else
           DynamicJsonBuffer jsonBuffer;
           JsonObject& jsonAutoControl = jsonBuffer.createObject();
       #endif
-          jsonAutoControl["lightAuto"] = lightAuto;
-          jsonAutoControl["lightOn"]   = lightOn;
-          jsonAutoControl["lightHourOn"] = lightHourOn;
-          jsonAutoControl["lightMinuteOn"] = lightMinuteOn;
-          jsonAutoControl["lightHourOf"] = lightHourOf;
-          jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
+      //using v6 only
+      File file = SPIFFS.open("/config.json", "r");
+      deserializeJson(jsonAutoControl, file);
+      file.close();
       
-          File configFile = SPIFFS.open("/config.json", "w");
-          if (!configFile) {
-            Serial.println("failed to open config file for writing auto control");
-          }
+      jsonAutoControl["lightAuto"] = lightAuto;
+      jsonAutoControl["lightOn"]   = lightOn;
+      jsonAutoControl["lightHourOn"] = lightHourOn;
+      jsonAutoControl["lightMinuteOn"] = lightMinuteOn;
+      jsonAutoControl["lightHourOf"] = lightHourOf;
+      jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
       
-      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-          serializeJson(jsonAutoControl, Serial);
-          serializeJson(jsonAutoControl, configFile);
-      #else
-          jsonAutoControl.printTo(Serial);
-          jsonAutoControl.printTo(configFile);
-      #endif
-          configFile.close();
-          //end save
+      file = SPIFFS.open("/config.json", "w");
+      serializeJson(jsonAutoControl, file);
+      serializeJson(jsonAutoControl, Serial);
+      file.close();
+      
 
-    }// ENDIF AUTOMATIC update
+    }////////////////////////////////////////////// END AUTOMATIC CONTROL UPDATE ////////////////////////////////////////////////////
 
     //atoi doesnt work to convert from JSONVar to INT!!! becareful, in tthe other board it used to work....
     //int value = atoi(controlInfo[keys[1]]);
@@ -541,8 +536,9 @@ void saveControlStatusFS (int GPIO, int onOff){
      Serial.println(GPIO);
      Serial.print("onOff:");
      Serial.println(onOff);
+     
       #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-          DynamicJsonDocument jsonControl(4096);
+          DynamicJsonDocument jsonControl(2048);
       #else
           DynamicJsonBuffer jsonBuffer;
           JsonObject& jsonControl = jsonBuffer.createObject();
@@ -582,7 +578,7 @@ void saveControlStatusFS (int GPIO, int onOff){
           //end save
           //TODO
           //aparently, in order to update one field, needo to rewrite the whole config file
-          //DynamicJsonDocument jsonControl(4096);
+          //DynamicJsonDocument jsonControl(2048);
           //doc["key"] = "value";
 }
 
