@@ -116,7 +116,9 @@ void setup() {
   //SPIFFS.format();
 
   //read configuration from FS json
+  delay(5000); //just to give me time to open serial monitor.....
   Serial.println("mounting FS...");
+  
 
   if (SPIFFS.begin()) {
     Serial.println("mounted file system");
@@ -456,7 +458,7 @@ void loop() {
         digitalWrite(GPIO_LIGHT, LOW); //LOW turns it ON, HIGH turns it OFF
         //save on board fs
         //EXPLODES....
-        //saveControlStatusFS(GPIO_LIGHT, lightOn);
+        saveControlStatusFS(GPIO_LIGHT, lightOn);
       }
     }
     else if (lightOn == 0) { //if lights are ON....
@@ -467,7 +469,7 @@ void loop() {
         digitalWrite(GPIO_LIGHT, HIGH); //LOW turns it ON, HIGH turns it OFF
         //save on board fs
         //EXPLODES....
-        //saveControlStatusFS(GPIO_LIGHT, lightOn);
+        saveControlStatusFS(GPIO_LIGHT, lightOn);
       }
     }
   }
@@ -580,7 +582,4 @@ void saveControlStatusFS (int GPIO, int onOff){
           //aparently, in order to update one field, needo to rewrite the whole config file
           //DynamicJsonDocument jsonControl(2048);
           //doc["key"] = "value";
-}
-
-void setControlOnOff (int GPIO, int OnOff){
 }
