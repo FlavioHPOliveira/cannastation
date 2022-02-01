@@ -124,7 +124,7 @@
                 </ul>
 
                 <ul class="control__line">
-                  <button class="control__automatic">Automatic</button>
+                  <button id="automaticFan" class="control__automatic">Automatic</button>
                 </ul>    
               </div>
             </li>
@@ -148,7 +148,7 @@
                 </ul>
 
                 <ul class="control__line">
-                  <button class="control__automatic">Automatic</button>
+                  <button id="automaticExhaust" class="control__automatic">Automatic</button>
                 </ul>    
               </div>
             </li>
@@ -174,7 +174,7 @@
                 </ul>
 
                 <ul class="control__line">
-                  <button class="control__automatic">Automatic</button>
+                  <button id="automaticWater" class="control__automatic">Automatic</button>
                 </ul>    
               </div>
             </li>
@@ -187,10 +187,9 @@
     </section>
   </main>
 
-  <!-- The Modal -->
-  <div id="myModal" class="modal">
+  <!-- LIGHT MODAL -->
+  <div id="lightModal" class="modal">
 
-    <!-- Modal content -->
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2>💡 Light Automatic Settings</h2>
@@ -213,6 +212,60 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- FAN MODAL -->
+  <div id="fanModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💨 Fan Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON when Temperature is greater than or equal:</p>
+        <label for="fanTempOn">Temperature:</label>
+        <input type="text" id="fanTempOn">
+        <br/>
+        <br/>
+        <button id="auto_fan_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXHAUST MODAL -->
+  <div id="exhaustModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>🔩 Exhaust Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON when Air Humidity is greater than or equal:</p>
+        <label for="exhaustAirHumidityOn">Air Humidity:</label>
+        <input type="text" id="exhaustAirHumidityOn">
+        <br/>
+        <br/>
+        <button id="auto_exhaust_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WATER MODAL -->
+  <div id="waterModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💧 Watering Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Define the starting hour of watering, the frequency in days, and duration in seconds:</p>
+        <label for="waterStartingHour">Start watering at hour:</label>
+        <input type="text" id="waterStartingHour">
+        <br/>
+        <label for="waterEveryXDay">Water every X Days:</label>
+        <input type="text" id="waterEveryXDay">
+        <br/>
+        <label for="waterDurationSeconds">Duration of watering in seconds:</label>
+        <input type="text" id="waterDurationSeconds">
+        <br/>
+        <br/>
+        <button id="auto_water_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
   </div>
   
 

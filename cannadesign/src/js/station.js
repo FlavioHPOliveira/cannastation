@@ -52,6 +52,9 @@ monitorAuthState().then( async  (user)=>{
     const btnExhaustManual = document.querySelector("#controlExhaust")
     const btnWaterManual = document.querySelector("#controlWater")
     const btnAutoLight = document.querySelector("#auto_light_apply")
+    const btnAutoFan = document.querySelector("#auto_fan_apply")
+    const btnAutoExhaust = document.querySelector("#auto_exhaust_apply")
+    const btnAutoWater = document.querySelector("#auto_water_apply")
 
     const GPIO_LIGHT = 5
     const GPIO_FAN = 4
@@ -295,7 +298,6 @@ monitorAuthState().then( async  (user)=>{
     // }
 
     //////////////////////////////// AUTOMATIC LIGHT CONTROL //////////////////////////////////
-    
     const sendMessageAutoLight = () => {
 
       console.log('btn light auto clicked')
@@ -315,9 +317,54 @@ monitorAuthState().then( async  (user)=>{
 
     }
     btnAutoLight.addEventListener('click', sendMessageAutoLight)
-    
 
-  
+    //////////////////////////////// AUTOMATIC FAN CONTROL //////////////////////////////////
+    const sendMessageAutoFan = () => {
+      console.log('btn fan auto clicked')
+      const fanAutoJSON = {
+        type: "control_auto",
+        control: "fan",
+        fanTempOn: parseInt(document.getElementById("fanTempOn").value)
+      }
+      const fanAutoStringfy = JSON.stringify(fanAutoJSON)
+      console.log(fanAutoStringfy)
+      socket.send(fanAutoStringfy);
+
+    }
+    btnAutoFan.addEventListener('click', sendMessageAutoFan)
+
+    //////////////////////////////// AUTOMATIC EXHAUST CONTROL //////////////////////////////////
+    const sendMessageAutoExhaust = () => {
+      console.log('btn exhaust auto clicked')
+      const exhaustAutoJSON = {
+        type: "control_auto",
+        control: "exhaust",
+        exhaustAirHumidityOn: parseInt(document.getElementById("exhaustAirHumidityOn").value)
+      }
+      const exhaustAutoStringfy = JSON.stringify(exhaustAutoJSON)
+      console.log(exhaustAutoStringfy)
+      socket.send(exhaustAutoStringfy);
+
+    }
+    btnAutoExhaust.addEventListener('click', sendMessageAutoExhaust)
+
+    //////////////////////////////// AUTOMATIC WATER CONTROL //////////////////////////////////
+    const sendMessageAutoWater = () => {
+      console.log('btn exhaust auto clicked')
+      const waterAutoJSON = {
+        type: "control_auto",
+        control: "water",
+        waterStartingHour: parseInt(document.getElementById("waterStartingHour").value),
+        waterEveryXDay: parseInt(document.getElementById("waterEveryXDay").value),
+        waterDurationSeconds: parseInt(document.getElementById("waterDurationSeconds").value)
+      }
+      const waterAutoStringfy = JSON.stringify(waterAutoJSON)
+      console.log(waterAutoStringfy)
+      socket.send(waterAutoStringfy);
+
+    }
+    btnAutoWater.addEventListener('click', sendMessageAutoWater)
+
 })
 
 // export { sendMessageLight };

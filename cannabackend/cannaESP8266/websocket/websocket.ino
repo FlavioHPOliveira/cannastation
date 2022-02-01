@@ -83,12 +83,12 @@ int lightMinuteOff  = 53;
 //Fan Control Variables
 int fanAuto       = 0;
 int fanOn         = 1;
-int fanOnTemp     = 999;
+int fanTempOn     = 999;
 
 //Exhaust Control Variables
 int exhaustAuto   = 0;
 int exhaustOn     = 1; 
-int exhaustOnAirHumidity = 999;
+int exhaustAirHumidityOn = 999;
 
 //Water Control Variables
 int waterAuto     = 0;
@@ -96,8 +96,8 @@ int waterOn       = 1;
 int waterStartingHour = 0;
 int waterEveryXHour = 0;
 int waterEvetyXDay = 0;
-int lastWateredTime = 0;
-int durationSeconds = 0;
+int lastWateredTime = 999;
+int waterDurationSeconds = 0;
  
 /////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
 
@@ -148,21 +148,39 @@ void setup() {
           lightOn   = (int) json["lightOn"];
           pinMode(GPIO_LIGHT, OUTPUT);
           digitalWrite(GPIO_LIGHT, lightOn); //LOW turns it ON, HIGH turns it OFF
+          if( lightAuto == 1 ){ // If light is auto, get values
+            lightHourOn     = (int) json["hourOn"];
+            lightMinuteOn   = (int) json["minuteOn"];
+            lightHourOf     = (int) json["hourOff"];
+            lightMinuteOff  = (int) json["minuteOff"];
+          }
 
           fanAuto = (int) json["fanAuto"];
           fanOn   = (int) json["fanOn"];
           pinMode(GPIO_FAN, OUTPUT);
           digitalWrite(GPIO_FAN, fanOn); //LOW turns it ON, HIGH turns it OFF
+          if( fanAuto == 1 ){
+            fanTempOn     = (int) json["fanTempOn"];
+          }
 
           exhaustAuto = (int) json["exhaustAuto"];
           exhaustOn   = (int) json["exhaustOn"];
           pinMode(GPIO_EXHAUST, OUTPUT);
           digitalWrite(GPIO_EXHAUST, exhaustOn); //LOW turns it ON, HIGH turns it OFF
+          if( exhaustAuto == 1 ){
+            exhaustAirHumidityOn = (int) json["exhaustAirHumidityOn"];
+          }
 
           waterAuto = (int) json["waterAuto"];
           waterOn   = (int) json["waterOn"];
           pinMode(GPIO_WATER, OUTPUT);
           digitalWrite(GPIO_WATER, waterOn); //LOW turns it ON, HIGH turns it OFF
+          if( waterAuto == 1 ){ // If light is auto, get values
+            waterStartingHour    = (int) json["waterStartingHour"];
+            waterEvetyXDay       = (int) json["waterEvetyXDay"];
+            lastWateredTime      = (int) json["lastWateredTime"];
+            waterDurationSeconds = (int) json["waterDurationSeconds"];
+          }
           
 
         } else {
@@ -418,22 +436,22 @@ void setup() {
       else if( control == "fan" ){
         
         fanAuto = 1;
-        fanOnTemp = (int)messageJSON["fanOnTemp"];
+        fanTempOn = (int)messageJSON["fanTempOn"];
         Serial.print("New Fan Auto ON Temperature: ");
-        Serial.println(fanOnTemp);
+        Serial.println(fanTempOn);
         jsonAutoControl["fanAuto"]   = fanAuto;
-        jsonAutoControl["fanOnTemp"] = fanOnTemp;
+        jsonAutoControl["fanTempOn"] = fanTempOn;
         
       }
       //////////EXHAUST AUTO CONTROL/////////
       else if( control == "exhaust" ){
         
         exhaustAuto = 1;
-        exhaustOnAirHumidity = (int)messageJSON["exhaustOnAirHumidity"];
+        exhaustAirHumidityOn = (int)messageJSON["exhaustAirHumidityOn"];
         Serial.print("New Exhaust Auto ON Air Humidity: ");
-        Serial.println(exhaustOnAirHumidity);
+        Serial.println(exhaustAirHumidityOn);
         jsonAutoControl["exhaustAuto"]          = exhaustAuto;
-        jsonAutoControl["exhaustOnAirHumidity"] = fanOnTemp;
+        jsonAutoControl["exhaustAirHumidityOn"] = exhaustAirHumidityOn;
 
       }
 
@@ -443,8 +461,8 @@ void setup() {
         waterStartingHour = (int)messageJSON["waterStartingHour"];
         waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
         waterEvetyXDay    = (int)messageJSON["waterEvetyXDay"];
-        //lastWateredTime   = (int)messageJSON["lastWateredTime"];
-        durationSeconds   = (int)messageJSON["durationSeconds"];
+        //lastWateredTime   = (int)messageJSON["lastWateredTime"]; // doesnt come from user...
+        waterDurationSeconds   = (int)messageJSON["waterDurationSeconds"];
         Serial.print("New Water Auto. Water Starting Hour: ");
         Serial.println("waterStartingHour");
         //Serial.print("Water Every X Hour: ");
@@ -452,13 +470,13 @@ void setup() {
         Serial.print("Water Every X Day: ");
         Serial.println(waterEvetyXDay);
         Serial.print("Duration in seconds: ");
-        Serial.println(durationSeconds);
+        Serial.println(waterDurationSeconds);
         jsonAutoControl["waterAuto"]          = waterAuto;
         jsonAutoControl["waterStartingHour"] = waterStartingHour;
         //jsonAutoControl["waterEveryXHour"] = waterEveryXHour;
         jsonAutoControl["waterEvetyXDay"] = waterEvetyXDay;
-        //jsonAutoControl["lastWateredTime"] = lastWateredTime;
-        jsonAutoControl["durationSeconds"] = durationSeconds;
+        jsonAutoControl["lastWateredTime"] = lastWateredTime;
+        jsonAutoControl["waterDurationSeconds"] = waterDurationSeconds;
         
       }
       
@@ -500,7 +518,8 @@ void loop() {
   Serial.println(currentSecond);
   Serial.println("..");
   
-  //
+  /////////////////////////////////// PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
+  //////PROCESS AUTO LIGHT ////////
   if ( lightAuto == 1 )
   {
 
@@ -531,6 +550,61 @@ void loop() {
       }
     }
   }
+
+  //////PROCESS AUTO FAN ////////
+  if ( fanAuto == 1 )
+  {
+
+    Serial.println("inside fanAuto == 1. Fan On at Temperature:");
+    Serial.println(fanTempOn);
+    
+    if (fanOn == 1) { //if fan is Off....
+      if ( (int)dht.readTemperature() >= fanTempOn ) {
+        Serial.println("Insisde Turn Fan On");
+        fanOn = 0;
+        pinMode(GPIO_FAN, OUTPUT);
+        digitalWrite(GPIO_FAN, LOW); //LOW turns it ON, HIGH turns it OFF
+        saveControlStatusFS(GPIO_FAN, fanOn);
+      }
+    }
+    else if (fanOn == 0) { //if fan is ON....
+      if ( (int)dht.readTemperature() < fanTempOn ) {        
+        Serial.println("Inside Turn Fan Off");
+        fanOn = 1;
+        pinMode(GPIO_FAN, OUTPUT);
+        digitalWrite(GPIO_FAN, HIGH); //LOW turns it ON, HIGH turns it OFF
+        saveControlStatusFS(GPIO_FAN, fanOn);
+      }
+    }
+  }
+
+  //////PROCESS AUTO EXHAUST ////////
+  if ( exhaustAuto == 1 )
+  {
+
+    Serial.println("inside exhaustAuto == 1. Exhaust On at air Humidity greater then or equal:");
+    Serial.println(exhaustAirHumidityOn);
+    
+    if (exhaustOn == 1) { //if exhaust is Off....
+      if ( (int)dht.readHumidity() >= exhaustAirHumidityOn ) {
+        Serial.println("Insisde Turn Fan On");
+        exhaustOn = 0;
+        pinMode(GPIO_EXHAUST, OUTPUT);
+        digitalWrite(GPIO_EXHAUST, LOW); //LOW turns it ON, HIGH turns it OFF
+        saveControlStatusFS(GPIO_EXHAUST, exhaustOn);
+      }
+    }
+    else if (exhaustOn == 0) { //if exhaust is ON....
+      if ( (int)dht.readHumidity() < exhaustAirHumidityOn ) {        
+        Serial.println("Inside Turn Fan Off");
+        exhaustOn = 1;
+        pinMode(GPIO_EXHAUST, OUTPUT);
+        digitalWrite(GPIO_EXHAUST, HIGH); //LOW turns it ON, HIGH turns it OFF
+        saveControlStatusFS(GPIO_EXHAUST, exhaustOn);
+      }
+    }
+  }
+  /////////////////////////////////// END OF PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
   
   client.poll();
   
