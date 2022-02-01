@@ -93,6 +93,7 @@ int exhaustOnAirHumidity = 999;
 //Water Control Variables
 int waterAuto     = 0;
 int waterOn       = 1;
+int waterStartingHour = 0;
 int waterEveryXHour = 0;
 int waterEvetyXDay = 0;
 int lastWateredTime = 0;
@@ -378,6 +379,18 @@ void setup() {
     if ( messageType == "control_auto") {
 
       String control = (const char*) messageJSON["control"];
+
+      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+          DynamicJsonDocument jsonAutoControl(2048);
+      #else
+          DynamicJsonBuffer jsonBuffer;
+          JsonObject& jsonAutoControl = jsonBuffer.createObject();
+      #endif
+      //using v6 only
+      File file = SPIFFS.open("/config.json", "r");
+      deserializeJson(jsonAutoControl, file);
+      file.close();
+      
       //////////LIGHT AUTO CONTROL/////////
       if( control == "light" ){
         lightAuto       = 1;
@@ -391,18 +404,7 @@ void setup() {
         Serial.println(lightMinuteOn);
         Serial.println(lightHourOf);
         Serial.println(lightMinuteOff);
-  
-        #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-            DynamicJsonDocument jsonAutoControl(2048);
-        #else
-            DynamicJsonBuffer jsonBuffer;
-            JsonObject& jsonAutoControl = jsonBuffer.createObject();
-        #endif
-        //using v6 only
-        File file = SPIFFS.open("/config.json", "r");
-        deserializeJson(jsonAutoControl, file);
-        file.close();
-        
+ 
         jsonAutoControl["lightAuto"] = lightAuto;
         jsonAutoControl["lightOn"]   = lightOn;
         jsonAutoControl["lightHourOn"] = lightHourOn;
@@ -410,20 +412,60 @@ void setup() {
         jsonAutoControl["lightHourOf"] = lightHourOf;
         jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
         
-        file = SPIFFS.open("/config.json", "w");
-        serializeJson(jsonAutoControl, file);
-        serializeJson(jsonAutoControl, Serial);
-        file.close();
+        
       }
       //////////FAN LIGHT AUTO CONTROL/////////
       else if( control == "fan" ){
-
         
-        if( (int)dht.readTemperature() >= fanOnTemp
+        fanAuto = 1;
+        fanOnTemp = (int)messageJSON["fanOnTemp"];
+        Serial.print("New Fan Auto ON Temperature: ");
+        Serial.println(fanOnTemp);
+        jsonAutoControl["fanAuto"]   = fanAuto;
+        jsonAutoControl["fanOnTemp"] = fanOnTemp;
+        
+      }
+      //////////EXHAUST AUTO CONTROL/////////
+      else if( control == "exhaust" ){
+        
+        exhaustAuto = 1;
+        exhaustOnAirHumidity = (int)messageJSON["exhaustOnAirHumidity"];
+        Serial.print("New Exhaust Auto ON Air Humidity: ");
+        Serial.println(exhaustOnAirHumidity);
+        jsonAutoControl["exhaustAuto"]          = exhaustAuto;
+        jsonAutoControl["exhaustOnAirHumidity"] = fanOnTemp;
+
+      }
+
+      else if( control == "water" ){
+
+        waterAuto = 1;
+        waterStartingHour = (int)messageJSON["waterStartingHour"];
+        waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
+        waterEvetyXDay    = (int)messageJSON["waterEvetyXDay"];
+        //lastWateredTime   = (int)messageJSON["lastWateredTime"];
+        durationSeconds   = (int)messageJSON["durationSeconds"];
+        Serial.print("New Water Auto. Water Starting Hour: ");
+        Serial.println("waterStartingHour");
+        //Serial.print("Water Every X Hour: ");
+        //Serial.println(waterEveryXHour);
+        Serial.print("Water Every X Day: ");
+        Serial.println(waterEvetyXDay);
+        Serial.print("Duration in seconds: ");
+        Serial.println(durationSeconds);
+        jsonAutoControl["waterAuto"]          = waterAuto;
+        jsonAutoControl["waterStartingHour"] = waterStartingHour;
+        //jsonAutoControl["waterEveryXHour"] = waterEveryXHour;
+        jsonAutoControl["waterEvetyXDay"] = waterEvetyXDay;
+        //jsonAutoControl["lastWateredTime"] = lastWateredTime;
+        jsonAutoControl["durationSeconds"] = durationSeconds;
         
       }
       
-      
+      file = SPIFFS.open("/config.json", "w");
+      serializeJson(jsonAutoControl, file);
+      serializeJson(jsonAutoControl, Serial);
+      file.close();
 
     }////////////////////////////////////////////// END AUTOMATIC CONTROL UPDATE ////////////////////////////////////////////////////
 
