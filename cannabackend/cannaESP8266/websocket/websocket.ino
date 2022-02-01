@@ -11,7 +11,6 @@
   https://github.com/gilmaimon/ArduinoWebsockets
 */
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
-
 #include <ArduinoWebsockets.h>
 //JSON main library
 //https://github.com/arduino-libraries/Arduino_JSON/blob/master/examples/JSONObject/JSONObject.ino
@@ -20,9 +19,13 @@
 #include <ESP8266WiFi.h>
 #include <DHT.h>
 #include <string>
-
 //WifiManager
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+//Get Time
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+/////////////////////////////////  VARIABLES DECLARATION  /////////////////////////////////////
 
 //Wifi Manager configuration
 //flag for saving data. (Not sure this is necessary)
@@ -32,49 +35,32 @@ void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
-
-
-
-//Get Time
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-
 /*Define NTP Client to get time
   https://randomnerdtutorials.com/esp8266-nodemcu-date-time-ntp-client-server-arduino/
 */
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
-//Week Days
-//String weekDays[7]={"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-//Month names
-//String months[12]={"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-
-
 /* Wifi connection */
 //const char* ssid = "2G_Netvirtua80"; //Enter SSID
 //const char* password = "34424595"; //Enter Password
-
 /*Web Socket*/
 //const char* websockets_server_host = "192.168.0.5"; //Enter server adress
 //const uint16_t websockets_server_port = 3000; // Enter server port
 using namespace websockets;
 //library By Gil Maimon https://github.com/gilmaimon/ArduinoWebsockets
 WebsocketsClient client;
-
 /*Sensors*/
-//#define DHTPIN 5             // Digital pin connected to the DHT sensor. Code = 5, ESP8266 D1.
-#define DHTPIN 14             // Digital pin connected to the DHT sensor. Code = 14, ESP8266 D5. 
+//#define DHTPIN 5           // Digital pin connected to the DHT sensor. Code = 5, ESP8266 D1.
+#define DHTPIN 14            // Digital pin connected to the DHT sensor. Code = 14, ESP8266 D5. 
 #define DHTTYPE DHT22        // DHT 22 (AM2302)
 DHT dht(DHTPIN, DHTTYPE);
 int soilPIN  = A0;           //Connect the soilMoisture output to analogue pin 1.
 //DEFINE the VARIABLES for AIR and water to calibrate the soil mositure sensor
 const int aire = 786;
 const int agua = 377;
-
 /*Flag to send sensor data, only sends data when user is accessing the board control page.
   NOT BEING USED SO FAR...*/
 int flagSendSensor = 0;
-
 /* Board token that will be populated when user signs in to Wifi */
 char tokenChar[40];
 String token = "initToken";
@@ -96,15 +82,23 @@ int lightMinuteOff  = 53;
 
 //Fan Control Variables
 int fanAuto       = 0;
-int fanOn         = 1; 
+int fanOn         = 1;
+int fanOnTemp     = 999;
 
 //Exhaust Control Variables
-int exhaustAuto       = 0;
-int exhaustOn         = 1; 
+int exhaustAuto   = 0;
+int exhaustOn     = 1; 
+int exhaustOnAirHumidity = 999;
 
 //Water Control Variables
-int waterAuto       = 0;
-int waterOn         = 1;
+int waterAuto     = 0;
+int waterOn       = 1;
+int waterEveryXHour = 0;
+int waterEvetyXDay = 0;
+int lastWateredTime = 0;
+int durationSeconds = 0;
+ 
+/////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
 
 void setup() {
 
@@ -384,40 +378,51 @@ void setup() {
     if ( messageType == "control_auto") {
 
       String control = (const char*) messageJSON["control"];
-      lightAuto       = 1;
-      lightHourOn     = (int) messageJSON["hourOn"];
-      lightMinuteOn   = (int) messageJSON["minuteOn"];
-      lightHourOf     = (int) messageJSON["hourOff"];
-      lightMinuteOff  = (int) messageJSON["minuteOff"];
+      //////////LIGHT AUTO CONTROL/////////
+      if( control == "light" ){
+        lightAuto       = 1;
+        lightHourOn     = (int) messageJSON["hourOn"];
+        lightMinuteOn   = (int) messageJSON["minuteOn"];
+        lightHourOf     = (int) messageJSON["hourOff"];
+        lightMinuteOff  = (int) messageJSON["minuteOff"];
+  
+        Serial.print("New Light ON Hour: ");
+        Serial.println(lightHourOn);
+        Serial.println(lightMinuteOn);
+        Serial.println(lightHourOf);
+        Serial.println(lightMinuteOff);
+  
+        #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
+            DynamicJsonDocument jsonAutoControl(2048);
+        #else
+            DynamicJsonBuffer jsonBuffer;
+            JsonObject& jsonAutoControl = jsonBuffer.createObject();
+        #endif
+        //using v6 only
+        File file = SPIFFS.open("/config.json", "r");
+        deserializeJson(jsonAutoControl, file);
+        file.close();
+        
+        jsonAutoControl["lightAuto"] = lightAuto;
+        jsonAutoControl["lightOn"]   = lightOn;
+        jsonAutoControl["lightHourOn"] = lightHourOn;
+        jsonAutoControl["lightMinuteOn"] = lightMinuteOn;
+        jsonAutoControl["lightHourOf"] = lightHourOf;
+        jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
+        
+        file = SPIFFS.open("/config.json", "w");
+        serializeJson(jsonAutoControl, file);
+        serializeJson(jsonAutoControl, Serial);
+        file.close();
+      }
+      //////////FAN LIGHT AUTO CONTROL/////////
+      else if( control == "fan" ){
 
-      Serial.print("New Light ON Hour: ");
-      Serial.println(lightHourOn);
-      Serial.println(lightMinuteOn);
-      Serial.println(lightHourOf);
-      Serial.println(lightMinuteOff);
-
-      #ifdef ARDUINOJSON_VERSION_MAJOR >= 6
-          DynamicJsonDocument jsonAutoControl(2048);
-      #else
-          DynamicJsonBuffer jsonBuffer;
-          JsonObject& jsonAutoControl = jsonBuffer.createObject();
-      #endif
-      //using v6 only
-      File file = SPIFFS.open("/config.json", "r");
-      deserializeJson(jsonAutoControl, file);
-      file.close();
+        
+        if( (int)dht.readTemperature() >= fanOnTemp
+        
+      }
       
-      jsonAutoControl["lightAuto"] = lightAuto;
-      jsonAutoControl["lightOn"]   = lightOn;
-      jsonAutoControl["lightHourOn"] = lightHourOn;
-      jsonAutoControl["lightMinuteOn"] = lightMinuteOn;
-      jsonAutoControl["lightHourOf"] = lightHourOf;
-      jsonAutoControl["lightMinuteOff"] = lightMinuteOff;
-      
-      file = SPIFFS.open("/config.json", "w");
-      serializeJson(jsonAutoControl, file);
-      serializeJson(jsonAutoControl, Serial);
-      file.close();
       
 
     }////////////////////////////////////////////// END AUTOMATIC CONTROL UPDATE ////////////////////////////////////////////////////
