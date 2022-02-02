@@ -95,8 +95,9 @@ int waterAuto     = 0;
 int waterOn       = 1;
 int waterStartingHour = 0;
 int waterEveryXHour = 0;
-int waterEvetyXDay = 0;
-int lastWateredTime = 999;
+int waterEveryXDay = 0;
+unsigned long lastWateredTime = 999; //epoch time seconds.
+int lastWateredHour = 999;
 int waterDurationSeconds = 0;
  
 /////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
@@ -177,8 +178,9 @@ void setup() {
           digitalWrite(GPIO_WATER, waterOn); //LOW turns it ON, HIGH turns it OFF
           if( waterAuto == 1 ){ // If light is auto, get values
             waterStartingHour    = (int) json["waterStartingHour"];
-            waterEvetyXDay       = (int) json["waterEvetyXDay"];
+            waterEveryXDay       = (int) json["waterEveryXDay"];
             lastWateredTime      = (int) json["lastWateredTime"];
+            lastWateredHour      = (int) json["lastWateredHour"];
             waterDurationSeconds = (int) json["waterDurationSeconds"];
           }
           
@@ -460,22 +462,21 @@ void setup() {
         waterAuto = 1;
         waterStartingHour = (int)messageJSON["waterStartingHour"];
         waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
-        waterEvetyXDay    = (int)messageJSON["waterEvetyXDay"];
+        waterEveryXDay    = (int)messageJSON["waterEveryXDay"];
         //lastWateredTime   = (int)messageJSON["lastWateredTime"]; // doesnt come from user...
         waterDurationSeconds   = (int)messageJSON["waterDurationSeconds"];
         Serial.print("New Water Auto. Water Starting Hour: ");
-        Serial.println("waterStartingHour");
-        //Serial.print("Water Every X Hour: ");
-        //Serial.println(waterEveryXHour);
+        Serial.println(waterStartingHour);
         Serial.print("Water Every X Day: ");
-        Serial.println(waterEvetyXDay);
+        Serial.println(waterEveryXDay);
         Serial.print("Duration in seconds: ");
         Serial.println(waterDurationSeconds);
         jsonAutoControl["waterAuto"]          = waterAuto;
         jsonAutoControl["waterStartingHour"] = waterStartingHour;
         //jsonAutoControl["waterEveryXHour"] = waterEveryXHour;
-        jsonAutoControl["waterEvetyXDay"] = waterEvetyXDay;
+        jsonAutoControl["waterEveryXDay"] = waterEveryXDay;
         jsonAutoControl["lastWateredTime"] = lastWateredTime;
+        jsonAutoControl["lastWateredHour"] = lastWateredHour;
         jsonAutoControl["waterDurationSeconds"] = waterDurationSeconds;
         
       }
@@ -501,22 +502,39 @@ void setup() {
 void loop() {
 
   timeClient.update();
+
+   unsigned long epochTime = timeClient.getEpochTime();
+  Serial.print("Epoch Time: ");
+  Serial.println(epochTime);
+  
+  String formattedTime = timeClient.getFormattedTime();
+  Serial.print("Formatted Time: ");
+  Serial.println(formattedTime);  
+
+  //Get a time structure
+  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+
+  int monthDay = ptm->tm_mday;
+  int currentMonth = ptm->tm_mon+1;
+  int currentYear = ptm->tm_year+1900;
+
+  Serial.print("current date yyyy-mm-dd:");
+  Serial.println( String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay) );
+  //String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
+
   //    unsigned long epochTime = timeClient.getEpochTime();
   //    String formattedTime = timeClient.getFormattedTime();
   //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
+  
   int currentHour = timeClient.getHours();
-  Serial.println("Curr Time:");
-  //Serial.print("Hour: ");
-  Serial.print(currentHour);
-  Serial.print(":");
   int currentMinute = timeClient.getMinutes();
-//  Serial.print("Minutes: ");
-  Serial.println(currentMinute);
-  Serial.print(":");
   int currentSecond = timeClient.getSeconds();
-  //Serial.print("Seconds: ");
+  Serial.print("Curr Time hh:mm:ss : ");
+  Serial.print(currentHour);
+  Serial.print(":");    
+  Serial.print(currentMinute);
+  Serial.print(":");
   Serial.println(currentSecond);
-  Serial.println("..");
   
   /////////////////////////////////// PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
   //////PROCESS AUTO LIGHT ////////
@@ -604,6 +622,88 @@ void loop() {
       }
     }
   }
+
+  //////PROCESS AUTO WATER ////////
+  if ( waterAuto == 1 )
+  {
+    Serial.println("inside WATER auto == 1.");
+    Serial.print("Water on At Every X Day:");
+    Serial.println(waterEveryXDay);
+    Serial.print("Water starting hour:");
+    Serial.println(waterStartingHour);
+    Serial.print("Last watered time:");
+    Serial.println(lastWateredTime);
+    Serial.print("Water duration:");
+    Serial.println(waterDurationSeconds);
+
+    //SET day and time variables.
+    
+    if (waterOn == 1) { //if water is Off....
+
+      // if auto water was never set up, just check if shold turn on.
+      if ( lastWateredTime == 999 ){
+        if( waterStartingHour == currentHour ){
+        Serial.println("Insisde Turn WATER On for the first time");
+        waterOn = 0;
+        pinMode(GPIO_WATER, OUTPUT);
+        digitalWrite(GPIO_WATER, LOW); //LOW turns it ON, HIGH turns it OFF
+        //saveControlStatusFS(GPIO_WATER, waterOn);
+
+        lastWateredTime = epochTime; //epoch time
+        lastWateredHour = currentHour;
+      
+        //todo
+        //save config to the fs.
+        }
+      }
+      //if water is off and is not first time its runnin water auto, check if it should turn on by the difference of time last watered.
+      else{
+        unsigned long daysDiffLastWatering = ( epochTime - lastWateredTime ) / 86400;
+        Serial.print("daysDiffLastWatering:");
+        Serial.println(daysDiffLastWatering);
+        int remainderDaysDiff = daysDiffLastWatering % waterEveryXDay;
+        Serial.print("remainderDaysDiff: ");
+        Serial.println(remainderDaysDiff);
+
+        //if it is day of watering, check if it is time.
+        if( remainderDaysDiff == 0 ){
+          //if it is time to water, and last watered hour is not current hour, should turn on.
+          if( waterEveryXHour == currentHour && lastWateredHour != currentHour ){
+              Serial.println("Insisde Turn WATER On");
+              waterOn = 0;
+              pinMode(GPIO_WATER, OUTPUT);
+              digitalWrite(GPIO_WATER, LOW); //LOW turns it ON, HIGH turns it OFF
+              //saveControlStatusFS(GPIO_WATER, waterOn);
+              
+              lastWateredTime = epochTime; //epoch time
+              lastWateredHour = currentHour;
+          }
+        }
+      }
+    }// end if water is off...
+
+    //If current time is greater than last watered time plus the duration of watering in seconds....
+    else if (waterOn == 0) { //if water is ON....
+      
+      Serial.println("Inside Turn WATER Off");
+      unsigned long lastWateredTimePlusDuration = lastWateredTime + waterDurationSeconds;
+      Serial.print("Last Watered Time:");
+      Serial.println(lastWateredTime);
+      Serial.print("waterDurationSeconds:");
+      Serial.println(waterDurationSeconds);
+      Serial.print("lastWateredTimePlusDuration:");
+      Serial.println(lastWateredTimePlusDuration);
+
+      if( epochTime > lastWateredTimePlusDuration ){
+        waterOn = 1;
+        pinMode(GPIO_WATER, OUTPUT);
+        digitalWrite(GPIO_WATER, HIGH); //LOW turns it ON, HIGH turns it OFF
+        //saveControlStatusFS(GPIO_WATER, waterOn);  
+      }
+      
+    }
+  }
+  
   /////////////////////////////////// END OF PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
   
   client.poll();

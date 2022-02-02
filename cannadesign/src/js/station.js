@@ -357,6 +357,7 @@ monitorAuthState().then( async  (user)=>{
         waterStartingHour: parseInt(document.getElementById("waterStartingHour").value),
         waterEveryXDay: parseInt(document.getElementById("waterEveryXDay").value),
         waterDurationSeconds: parseInt(document.getElementById("waterDurationSeconds").value)
+        
       }
       const waterAutoStringfy = JSON.stringify(waterAutoJSON)
       console.log(waterAutoStringfy)
