@@ -15,9 +15,11 @@
 }
 
 .status__welcome h2 {
-  display: flex;
-  flex-flow: wrap column;
-  align-items: center;
+  /* display: flex;
+  flex-flow: wrap row;
+  align-items: center; */
+
+  text-align: center;
 
   font-size: 24px;
   font-weight: 500;

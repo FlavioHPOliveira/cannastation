@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     login: './src/js/login.js',
     station: ['./src/js/station.js', './src/js/modal.js'],
+    product: './src/js/product.js'
   },
   // The location of the build folder described above
   output: {

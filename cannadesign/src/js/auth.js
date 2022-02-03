@@ -18,7 +18,8 @@ import { getFirestore,
   setDoc,
   connectFirestoreEmulator,
   query,
-  where
+  where, 
+  updateDoc
 
 } from "firebase/firestore";
 
@@ -124,4 +125,5 @@ const setTokenLocalStorage = async (uid) =>{
 
 }
 
-export { doc, setDoc, collection, auth, logout, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, db, monitorAuthState, getDoc };
+export { doc, setDoc, collection, auth, logout, signInWithEmailAndPassword, 
+         createUserWithEmailAndPassword, onAuthStateChanged, db, monitorAuthState, getDoc, updateDoc };

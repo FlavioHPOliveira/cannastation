@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 
-const { db, auth, onAuthStateChanged, monitorAuthState, doc, getDoc } = require("./auth.js")
+const { db, auth, onAuthStateChanged, monitorAuthState, doc, getDoc, updateDoc } = require("./auth.js")
 
 console.log("teste station db:", db)
 //const user = getAuth().currentUser;
@@ -27,6 +27,8 @@ monitorAuthState().then( async  (user)=>{
 
   if (docSnap.exists()) {
     console.log("Document data:", docSnap.data());
+    document.getElementById("userName").innerHTML = docSnap.data().name;  
+
   } else {
     // doc.data() will be undefined in this case
     console.log("No such document!");

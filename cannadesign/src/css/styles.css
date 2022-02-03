@@ -19,6 +19,10 @@ ul {
   margin: 0px;
   padding: 0px;
 }
+span {
+  white-space: nowrap;
+  overflow: hidden;
+}
 
 main {
   display: flex;
