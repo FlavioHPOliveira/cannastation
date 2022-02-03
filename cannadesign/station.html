@@ -1,0 +1,280 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" />
+  <script src="https://kit.fontawesome.com/ae320467ae.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="src/css/header.css">
+  <link rel="stylesheet" href="src/css/status.css">
+  <link rel="stylesheet" href="src/css/cards.css">
+  <link rel="stylesheet" href="src/css/sensor.css">
+  <link rel="stylesheet" href="src/css/control.css">
+  <link rel="stylesheet" href="src/css/modal.css">
+  <title>Cannastation</title>
+</head>
+<body>
+
+  
+
+  <header>
+    <a class="header__logo" href=""><img src="src/img/green-cannabis-leaf-simple-drawing-vector.jpg" alt="logo"></img>Cannastation</a>
+    <nav>
+        <ul class="nav__links">
+            <li><i class="fas fa-info-circle nav__icon"></i>How it works</li>
+            <li><i class="fas fa-hand-holding-heart nav__icon"></i>Community</li>
+            <li><i class="fas fa-money-check-alt nav__icon"></i>Plans</li>
+        </ul>
+    </nav>
+    <nav>
+      <ul class="nav__links">
+        <li class="nav__board selected"><i class="fas fa-solid fa-leaf nav__icon"></i>My Station</li>
+        <li><span class="fa fa-user nav__icon"></span>Profile</li>
+      </ul>    
+    </nav>
+    
+  </header>
+
+  <main>
+
+    <section class="status">
+      <div class="status__welcome">
+        <h2>Welcome Flavio  👋</h2>
+        
+        <h3>Set up your station and start growing your seeds!</h3>
+      </div>
+      <div class="status__content">
+        <ul>
+          <h4>Board Status: <span id="boardStatusOnOff">Offline</span> <span id="boardStatusOnOffIcon" class="fas fa-solid fa-power-off color__red"> </span> &nbsp&nbsp&nbsp Last Update: <span id="lastUpdate">Loading...</span>  🕒</h4>
+          
+        </ul>
+      </div>
+      
+    </section>
+    
+    <section class="main">
+      <div class="main__data">
+        <h3 class="main__title">🧭 Sensors</h3>
+        <ul class='main__cards'>
+          <li class='sensor__card'>
+            <h3>Temperature</h3>
+            <i class="fas fa-solid fa-temperature-high fa-2x color__green"></i>
+            <h2 id="temperature">Loading...</h2>
+          </li>
+          <li class='sensor__card'>
+            <h3>Air Humidity</h3>
+            <i class="fas fa-solid fa-wind fa-2x color__red"></i>
+            <h2 id="airHumidity">Loading...</h2>
+          </li>
+          <li class='sensor__card'>
+            <h3>Soil Humidity</h3>
+            <i class="fas fa-solid fa-spa fa-2x color__green"></i>
+            <h2 id="soilMoisture">Loading...</h2>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="main">
+      <div class="main__data">
+        <h3 class="main__title">🕹️ Controls</h3>
+        <h3 id="controlLoading" class="control__loading">Loading...</h3>
+        <ul id="controlMainCards" class='main__cards control__cards__hidden'>
+          
+            <li id="lightControlCard" class='control__card control__on'>
+              <div class="control__card__head">
+                <h3>Light</h3>
+                <i id="lightIcon" class="far fa-lightbulb fa-lg color__green fa-2x"></i>
+              </div>
+              <div class="control__card__lines">
+                <ul class="control__line">
+                  <li>Online</li>
+                  <button id="controlLight" class="control__buttonOnOff" value=1>
+                    <li id="lightPowerIcon" class="fas fa-solid fa-power-off color__green"></li>
+                  </button>
+                </ul>
+
+                <ul class="control__line">
+                  <li>Mode</li>
+                  <li>Manual</li>
+                </ul>
+
+                <ul class="control__line">
+                  <button id="automaticLight" class="control__automatic">Automatic</button>
+                </ul>    
+              </div>
+            </li>
+
+            <li id="fanControlCard" class='control__card control__off'>
+              <div class="control__card__head">
+                <h3>Fan</h3>
+                <i id="fanIcon" class="fas fa-solid fa-fan color__red fa-2x"></i>
+              </div>
+              <div class="control__card__lines">
+                <ul class="control__line">
+                  <li>Offline</li>
+                  <button id="controlFan" class="control__buttonOnOff" value=0>
+                    <li id="fanPowerIcon" class="fas fa-solid fa-power-off color__red"></li>
+                  </button>
+                </ul>
+
+                <ul class="control__line">
+                  <li>Mode</li>
+                  <li>Manual</li>
+                </ul>
+
+                <ul class="control__line">
+                  <button id="automaticFan" class="control__automatic">Automatic</button>
+                </ul>    
+              </div>
+            </li>
+
+            <li id="exhaustControlCard" class='control__card control__on'>
+              <div class="control__card__head">
+                <h3>Exaust</h3>
+                <i id="exhaustIcon" class="fas fa-solid fa-soap fa-2x color__green"></i>
+              </div>
+              <div class="control__card__lines">
+                <ul class="control__line">
+                  <li>Online</li>
+                  <button id="controlExhaust" class="control__buttonOnOff" value=0>
+                  <li id="exhaustPowerIcon" class="fas fa-solid fa-power-off color__green"></li>
+                  </button>
+                </ul>
+          
+                <ul class="control__line">
+                  <li>Mode</li>
+                  <li>Manual</li>
+                </ul>
+
+                <ul class="control__line">
+                  <button id="automaticExhaust" class="control__automatic">Automatic</button>
+                </ul>    
+              </div>
+            </li>
+
+
+            <li id="waterControlCard" class='control__card control__off'>
+              <div class="control__card__head">
+                <h3>Water</h3>
+                <i id="waterIcon" class="fas fa-solid fa-shower fa-2x color__red"></i>
+              </div>
+              <div class="control__card__lines">
+                <ul class="control__line">
+                  <li>Offline</li>
+                  <button id="controlWater" class="control__buttonOnOff" value=0>
+                    <li id="waterPowerIcon" class="fas fa-solid fa-power-off color__red"></li>
+                  </button>
+                </ul>
+                
+
+                <ul class="control__line">
+                  <li>Mode</li>
+                  <li>Manual</li>
+                </ul>
+
+                <ul class="control__line">
+                  <button id="automaticWater" class="control__automatic">Automatic</button>
+                </ul>    
+              </div>
+            </li>
+
+            </li>
+         
+           
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- LIGHT MODAL -->
+  <div id="lightModal" class="modal">
+
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💡 Light Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON At:</p>
+        <label for="hourOn">Hour:</label>
+        <input type="text" id="hourOn">
+        <label for="minuteOn">Minutes:</label>
+        <input type="text" id="minuteOn">
+
+        <p>Turn OFF At:</p>
+        <label for="hourOff">Hour:</label>
+        <input type="text" id="hourOff">
+        <label for="minuteOff">Minutes:</label>
+        <input type="text" id="minuteOff">
+        <br/>
+        <br/>
+        <button id="auto_light_apply" class="control__buttonOnOff">Apply</button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAN MODAL -->
+  <div id="fanModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💨 Fan Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON when Temperature is greater than or equal:</p>
+        <label for="fanTempOn">Temperature:</label>
+        <input type="text" id="fanTempOn">
+        <br/>
+        <br/>
+        <button id="auto_fan_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXHAUST MODAL -->
+  <div id="exhaustModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>🔩 Exhaust Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Turn ON when Air Humidity is greater than or equal:</p>
+        <label for="exhaustAirHumidityOn">Air Humidity:</label>
+        <input type="text" id="exhaustAirHumidityOn">
+        <br/>
+        <br/>
+        <button id="auto_exhaust_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WATER MODAL -->
+  <div id="waterModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💧 Watering Automatic Settings</h2>
+      <div class="automatic__settings">
+        <p>Define the starting hour of watering, the frequency in days, and duration in seconds:</p>
+        
+        <label for="waterStartingHour">Start watering at hour:</label>
+        <input type="text" id="waterStartingHour">
+        <br/>
+        <label for="waterEveryXDay">Water every X Days:</label>
+        <input type="text" id="waterEveryXDay">
+        <br/>
+        <label for="waterDurationSeconds">Duration of watering in seconds:</label>
+        <input type="text" id="waterDurationSeconds">
+        <br/>
+        <br/>
+        <button id="auto_water_apply" class="control__buttonOnOff">Apply</button>
+      </div>
+    </div>
+  </div>
+  
+
+  <footer></footer>
+  
+  <script src='dist/station.bundle.js'></script>
+  <!-- <script src='src/js/station.js'></script>
+  <script src='src/js/modal.js'></script> -->
+  
+</body>
+</html>
