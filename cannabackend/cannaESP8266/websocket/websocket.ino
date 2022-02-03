@@ -503,7 +503,7 @@ void loop() {
 
   timeClient.update();
 
-   unsigned long epochTime = timeClient.getEpochTime();
+  unsigned long epochTime = timeClient.getEpochTime();
   Serial.print("Epoch Time: ");
   Serial.println(epochTime);
   
@@ -520,12 +520,7 @@ void loop() {
 
   Serial.print("current date yyyy-mm-dd:");
   Serial.println( String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay) );
-  //String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
 
-  //    unsigned long epochTime = timeClient.getEpochTime();
-  //    String formattedTime = timeClient.getFormattedTime();
-  //    String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
-  
   int currentHour = timeClient.getHours();
   int currentMinute = timeClient.getMinutes();
   int currentSecond = timeClient.getSeconds();
@@ -535,6 +530,9 @@ void loop() {
   Serial.print(currentMinute);
   Serial.print(":");
   Serial.println(currentSecond);
+  
+  String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond);
+  //String formattedTime = timeClient.getFormattedTime();
   
   /////////////////////////////////// PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
   //////PROCESS AUTO LIGHT ////////
@@ -718,15 +716,15 @@ void loop() {
     String temperature = String(dht.readTemperature());
     String airHumidity    = String(dht.readHumidity());
 
-    int soilMoistureInt = map(analogRead(soilPIN), aire, agua, 0, 100);
-    String soilMoistureString = String(soilMoistureInt);
-
-    String JSONType = "{\"type\":\"sensor\"";
-    String sensorJSONTemperature = "\"temperature\":\"" + temperature + "\"";
-    String sensorJSONAirHumidity = "\"airHumidity\":\"" + airHumidity + "\"";
+    int    soilMoistureInt        = map(analogRead(soilPIN), aire, agua, 0, 100);
+    String soilMoistureString     = String(soilMoistureInt);
+    String JSONType               = "{\"type\":\"sensor\"";
+    String currDateTime           = "\"dateTime\":\"" + currentDate + "\"";
+    String sensorJSONTemperature  = "\"temperature\":\"" + temperature + "\"";
+    String sensorJSONAirHumidity  = "\"airHumidity\":\"" + airHumidity + "\"";
     String sensorJSONSoilMoisture = "\"soilMoisture\":\"" + soilMoistureString + "\"}";
 
-    String sensorJSONConcat = JSONType + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
+    String sensorJSONConcat = JSONType + "," + currDateTime + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
     
     Serial.print("*Serial:Sensor data ");
     Serial.println(sensorJSONConcat);

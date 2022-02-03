@@ -47,19 +47,20 @@ monitorAuthState().then( async  (user)=>{
     // Create WebSocket connection.
     
     const socket = new WebSocket(`ws://localhost:3000/?token=${docSnap.data().boardDefault}?clientType=app`);
-    const btnLightManual = document.querySelector("#controlLight")  
-    const btnFanManual = document.querySelector("#controlFan")
-    const btnExhaustManual = document.querySelector("#controlExhaust")
-    const btnWaterManual = document.querySelector("#controlWater")
-    const btnAutoLight = document.querySelector("#auto_light_apply")
-    const btnAutoFan = document.querySelector("#auto_fan_apply")
-    const btnAutoExhaust = document.querySelector("#auto_exhaust_apply")
-    const btnAutoWater = document.querySelector("#auto_water_apply")
 
-    const GPIO_LIGHT = 5
-    const GPIO_FAN = 4
+    const btnLightManual    = document.querySelector("#controlLight")  
+    const btnFanManual      = document.querySelector("#controlFan")
+    const btnExhaustManual  = document.querySelector("#controlExhaust")
+    const btnWaterManual    = document.querySelector("#controlWater")
+    const btnAutoLight      = document.querySelector("#auto_light_apply")
+    const btnAutoFan        = document.querySelector("#auto_fan_apply")
+    const btnAutoExhaust    = document.querySelector("#auto_exhaust_apply")
+    const btnAutoWater      = document.querySelector("#auto_water_apply")
+
+    const GPIO_LIGHT   = 5
+    const GPIO_FAN     = 4
     const GPIO_EXHAUST = 0
-    const GPIO_WATER = 2
+    const GPIO_WATER   = 2
 
     // Connection opened
     socket.addEventListener('open', function (event) {
@@ -72,10 +73,17 @@ monitorAuthState().then( async  (user)=>{
 
         try{
           const sensorData = JSON.parse(event.data)
-          if(sensorData?.type == "sensor" ){
+          if( sensorData?.type == "sensor" ){
             document.getElementById("temperature").innerHTML = sensorData?.temperature; 
             document.getElementById("airHumidity").innerHTML = sensorData?.airHumidity;
             document.getElementById("soilMoisture").innerHTML = sensorData?.soilMoisture;
+            document.getElementById("lastUpdate").innerHTML = sensorData?.dateTime;
+
+            document.getElementById("boardStatusOnOff").innerHTML = "Online";
+            const boardStatusIcon = document.getElementById("boardStatusOnOffIcon");
+            boardStatusIcon.classList.remove("color__red")
+            boardStatusIcon.classList.add("color__green")
+
           }else if( sensorData?.type == "controlState" ){
             
             //SET UP Cards classes
@@ -134,7 +142,6 @@ monitorAuthState().then( async  (user)=>{
               waterControlCard.classList.add('control__on')
               waterPowerIcon.classList.remove('color__red')
               waterPowerIcon.classList.add('color__green')
-
             }
 
             //Remove loading and Make cards visible.
@@ -183,10 +190,10 @@ monitorAuthState().then( async  (user)=>{
     //////////////////////////////// LIGHT CONTROL //////////////////////////////////
     const sendMessageLight = () => {
 
-        const lightButton = document.getElementById("controlLight")
-        const lightIcon = document.getElementById("lightIcon")
+        const lightButton      = document.getElementById("controlLight")
+        const lightIcon        = document.getElementById("lightIcon")
         const lightControlCard = document.getElementById("lightControlCard")
-        const lightPowerIcon = document.getElementById("lightPowerIcon")
+        const lightPowerIcon   = document.getElementById("lightPowerIcon")
 
         console.log(lightButton.value);
         let lightControlMessage = ''
@@ -211,10 +218,10 @@ monitorAuthState().then( async  (user)=>{
     //////////////////////////////// FAN CONTROL //////////////////////////////////
     const sendMessageFan = () => {
 
-    const fanButton = document.getElementById("controlFan")
-    const fanIcon = document.getElementById("fanIcon")
+    const fanButton      = document.getElementById("controlFan")
+    const fanIcon        = document.getElementById("fanIcon")
     const fanControlCard = document.getElementById("fanControlCard")
-    const fanPowerIcon = document.getElementById("fanPowerIcon")
+    const fanPowerIcon   = document.getElementById("fanPowerIcon")
 
     console.log(fanButton.value);
     let fanControlMessage = ''
@@ -237,10 +244,10 @@ monitorAuthState().then( async  (user)=>{
    //////////////////////////////// EXHAUST CONTROL //////////////////////////////////
    const sendMessageExhaust = () => {
 
-    const exhaustButton = document.getElementById("controlExhaust")
-    const exhaustIcon = document.getElementById("exhaustIcon")
+    const exhaustButton      = document.getElementById("controlExhaust")
+    const exhaustIcon        = document.getElementById("exhaustIcon")
     const exhaustControlCard = document.getElementById("exhaustControlCard")
-    const exhaustPowerIcon = document.getElementById("exhaustPowerIcon")
+    const exhaustPowerIcon   = document.getElementById("exhaustPowerIcon")
 
     console.log(exhaustButton.value);
     let exhaustControlMessage = ''
@@ -263,10 +270,10 @@ monitorAuthState().then( async  (user)=>{
     //////////////////////////////// WATER CONTROL //////////////////////////////////
     const sendMessageWater = () => {
 
-    const waterButton = document.getElementById("controlWater")
-    const waterIcon = document.getElementById("waterIcon")
-    const waterControlCard = document.getElementById("waterControlCard")
-    const waterPowerIcon = document.getElementById("waterPowerIcon")
+    const waterButton       = document.getElementById("controlWater")
+    const waterIcon         = document.getElementById("waterIcon")
+    const waterControlCard  = document.getElementById("waterControlCard")
+    const waterPowerIcon    = document.getElementById("waterPowerIcon")
 
     console.log(waterButton.value);
     let waterControlMessage = ''
@@ -299,15 +306,13 @@ monitorAuthState().then( async  (user)=>{
 
     //////////////////////////////// AUTOMATIC LIGHT CONTROL //////////////////////////////////
     const sendMessageAutoLight = () => {
-
       console.log('btn light auto clicked')
-
       const lightAutoJSON = {
         type: "control_auto",
         control: "light",
-        hourOn: parseInt(document.getElementById("hourOn").value),
-        hourOff: parseInt(document.getElementById("hourOff").value),
-        minuteOn: parseInt(document.getElementById("minuteOn").value),
+        hourOn:    parseInt(document.getElementById("hourOn").value),
+        hourOff:   parseInt(document.getElementById("hourOff").value),
+        minuteOn:  parseInt(document.getElementById("minuteOn").value),
         minuteOff: parseInt(document.getElementById("minuteOff").value)
       }
 
@@ -352,10 +357,10 @@ monitorAuthState().then( async  (user)=>{
     const sendMessageAutoWater = () => {
       console.log('btn exhaust auto clicked')
       const waterAutoJSON = {
-        type: "control_auto",
+        type:    "control_auto",
         control: "water",
-        waterStartingHour: parseInt(document.getElementById("waterStartingHour").value),
-        waterEveryXDay: parseInt(document.getElementById("waterEveryXDay").value),
+        waterStartingHour:    parseInt(document.getElementById("waterStartingHour").value),
+        waterEveryXDay:       parseInt(document.getElementById("waterEveryXDay").value),
         waterDurationSeconds: parseInt(document.getElementById("waterDurationSeconds").value)
         
       }
