@@ -55,6 +55,7 @@ const loginEmailPassword = async () => {
 const createAccount = async () =>{
   const loginEmail = document.querySelector("#txtEmail").value;
   const loginPwd = document.querySelector("#txtPwd").value;
+  const name = document.querySelector("#txtName").value;
   try{
     const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
     console.log(userCredential.user)
@@ -63,20 +64,21 @@ const createAccount = async () =>{
     try {
       //TODO
       //Create mechanism to generate tokens when user buys a board.
-      const boardToken = userCredential.user.email.substring(0,3) + userCredential.user.uid.substring(0,3)
-      console.log("boardToken: ", boardToken)
+      //const boardToken = userCredential.user.email.substring(0,3) + userCredential.user.uid.substring(0,3)
+      //console.log("boardToken: ", boardToken)
       const docRef = await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: name,
         email: userCredential.user.email,
         uID: userCredential.user.uid,
-        boardDefault: boardToken,
-        boards: [boardToken]
+        boardDefault: null,
+        boards: []
       });
       console.log("New Station Doc Inserted: ", docRef.id);
     } catch (e) {
       console.error("Error adding document: ", e);
     }
 
-    window.location.href = 'station.html'
+    window.location.href = 'product.html'
 
     //TODO
     //salvar ussuario na collection do usuario, com todos usuarios que vem do 

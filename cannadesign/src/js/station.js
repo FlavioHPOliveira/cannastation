@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 
-const { db, auth, onAuthStateChanged, monitorAuthState, doc, getDoc } = require("./auth.js")
+const { db, auth, onAuthStateChanged, monitorAuthState, doc, getDoc, updateDoc } = require("./auth.js")
 
 console.log("teste station db:", db)
 //const user = getAuth().currentUser;
@@ -27,6 +27,8 @@ monitorAuthState().then( async  (user)=>{
 
   if (docSnap.exists()) {
     console.log("Document data:", docSnap.data());
+    document.getElementById("userName").innerHTML = docSnap.data().name;  
+
   } else {
     // doc.data() will be undefined in this case
     console.log("No such document!");
@@ -78,8 +80,9 @@ monitorAuthState().then( async  (user)=>{
             document.getElementById("airHumidity").innerHTML = sensorData?.airHumidity;
             document.getElementById("soilMoisture").innerHTML = sensorData?.soilMoisture;
             document.getElementById("lastUpdate").innerHTML = sensorData?.dateTime;
-
             document.getElementById("boardStatusOnOff").innerHTML = "Online";
+
+
             const boardStatusIcon = document.getElementById("boardStatusOnOffIcon");
             boardStatusIcon.classList.remove("color__red")
             boardStatusIcon.classList.add("color__green")
@@ -99,6 +102,8 @@ monitorAuthState().then( async  (user)=>{
               fanControlCard.classList.add('control__off')
               fanPowerIcon.classList.remove('color__green')
               fanPowerIcon.classList.add('color__red')
+              document.getElementById("fanOnOffDesc").innerHTML = "Offline";
+
             }else if(sensorData?.fanOn == 0){
               fanIcon.classList.remove('color__red')
               fanIcon.classList.add('color__green')
@@ -106,6 +111,8 @@ monitorAuthState().then( async  (user)=>{
               fanControlCard.classList.add('control__on')
               fanPowerIcon.classList.remove('color__red')
               fanPowerIcon.classList.add('color__green')
+              document.getElementById("fanOnOffDesc").innerHTML = "Online";
+             
             }
 
             //EXHAUST
@@ -116,6 +123,7 @@ monitorAuthState().then( async  (user)=>{
               exhaustControlCard.classList.add('control__off')
               exhaustPowerIcon.classList.remove('color__green')
               exhaustPowerIcon.classList.add('color__red')
+              document.getElementById("exhaustOnOffDesc").innerHTML = "Offline";
 
             }else if(sensorData?.exhaustOn == 0){
               exhaustIcon.classList.remove('color__red')
@@ -124,6 +132,8 @@ monitorAuthState().then( async  (user)=>{
               exhaustControlCard.classList.add('control__on')
               exhaustPowerIcon.classList.remove('color__red')
               exhaustPowerIcon.classList.add('color__green')
+              document.getElementById("exhaustOnOffDesc").innerHTML = "Online";
+              
             }
 
             //WATER
@@ -134,6 +144,7 @@ monitorAuthState().then( async  (user)=>{
               waterControlCard.classList.add('control__off')
               waterPowerIcon.classList.remove('color__green')
               waterPowerIcon.classList.add('color__red')
+              document.getElementById("waterOnOffDesc").innerHTML = "Offline";
 
             }else if(sensorData?.waterOn == 0){
               waterIcon.classList.remove('color__red')
@@ -142,6 +153,7 @@ monitorAuthState().then( async  (user)=>{
               waterControlCard.classList.add('control__on')
               waterPowerIcon.classList.remove('color__red')
               waterPowerIcon.classList.add('color__green')
+              document.getElementById("waterOnOffDesc").innerHTML = "Online";
             }
 
             //Remove loading and Make cards visible.
@@ -178,6 +190,7 @@ monitorAuthState().then( async  (user)=>{
           lightControlCard.classList.add('control__off')
           lightPowerIcon.classList.remove('color__green')
           lightPowerIcon.classList.add('color__red')
+          document.getElementById("lightOnOffDesc").innerHTML = "Offline";
       }else if(onOff == 0){
           lightIcon.classList.remove('color__red')
           lightIcon.classList.add('color__green')
@@ -185,6 +198,8 @@ monitorAuthState().then( async  (user)=>{
           lightControlCard.classList.add('control__on')
           lightPowerIcon.classList.remove('color__red')
           lightPowerIcon.classList.add('color__green')
+          document.getElementById("lightOnOffDesc").innerHTML = "Online";
+
       }
     }
     //////////////////////////////// LIGHT CONTROL //////////////////////////////////
