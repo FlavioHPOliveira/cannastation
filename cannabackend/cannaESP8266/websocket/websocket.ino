@@ -321,7 +321,9 @@ void setup() {
   
   token = tokenChar;
   Serial.println(token);
-  connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
+  //connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
+  //connectionURL = "ws://cannastation.herokuapp.com:44290/?token=" + token + "?clientType=board";
+  connectionURL = "ws://cannastation.herokuapp.com/?token=" + token + "?clientType=board";
   Serial.println(connectionURL);
 
   //5 seconds delay to give some time before connecting the WS. didnt work that wel...only on first time! 

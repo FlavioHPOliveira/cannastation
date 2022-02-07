@@ -80,8 +80,8 @@ return new Promise(function(resolve, reject) {
     //if user signs out, show register form.
     else{
       //show login form
-      if(window.location.pathname !== "/cannadesign/login.html"){
-        window.location.href = "/cannadesign/login.html"
+      if(window.location.pathname !== "/login.html"){
+        window.location.href = "/login.html"
       }
       console.log('you are logged out.')
       resolve(false);
