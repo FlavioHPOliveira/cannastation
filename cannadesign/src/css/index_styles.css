@@ -358,7 +358,7 @@ header .icons #menu-bars {
 .menu .box-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
-  padding: 2rem 9%;
+  padding: 2rem 15%;
   gap: 1rem;
 }
 
@@ -370,7 +370,7 @@ header .icons #menu-bars {
 }
 
 .menu .box-container .box .image {
-  height: 25rem;
+  height: 15rem;
   width: 100%;
   padding: 1.5rem;
   overflow: hidden;
@@ -381,7 +381,7 @@ header .icons #menu-bars {
   height: 100%;
   width: 100%;
   border-radius: 0.5rem;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .menu .box-container .box .content h3 {
