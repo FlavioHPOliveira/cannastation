@@ -1,89 +1,168 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- <script src="https://kit.fontawesome.com/ae320467ae.js" crossorigin="anonymous"></script> -->
+  <!-- font awesome cdn link  -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/9.6.6/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/9.6.6/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+  <!-- custom css file link  -->
+  <link rel="stylesheet" href="src/css/index_styles.css">
+  
+  <title>Cannastation</title>
+</head>
+<body>
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+
+  <header>
+    <!-- <a class="header__logo" href=""><img src="src/img/green-cannabis-leaf-simple-drawing-vector.jpg" alt="logo"></img>Cannastation</a> -->
+    <a class="logo" href="#"><i class="fas fa-cannabis"></i>Cannastation.</a>
+
+    <nav class="navbar">
+      <a class="active" href="#home">home</a>
+      <a href="#howitworks"><i class="fas fa-info-circle"></i> How it works</a>
+      <a href="#plans"><i class="fas fa-money-check-alt"></i> Plans</a>
+    </nav>
+
+    <div class="icons">
+        <i class="fas fa-bars" id="menu-bars"></i>
+        <a href="#" class="fas fa-solid fa-leaf"></a><span>My Station</span>
+        <a href="#" class="fa fa-user"></a><span>Profile</span>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+    
+  </header>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+  <section class="home" id="home">
+    <div class="content">
+      <span>be free</span>
+      <h3>Growing made easy.</h3>
+      <p>Save time and money by Automating your growth with Cannastation</p>
+      <a href="#" class="btn">order now</a>
+    </div>
+    <div class="image">
+      <img src="src/img/home-1.jpg" alt="">
+    </div>
+  </section>
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
-  </body>
+  <section class="about" id="about">
+
+    <h3 class="sub-heading"> real time control </h3>
+    <h1 class="heading"> Monitor your grow in the App </h1>
+
+    <div class="row">
+
+        <div class="image">
+            <img src="src/img/StationControlGit.gif" alt="">
+        </div>
+
+        <div class="content">
+            <h3>Maximum quality and productivity.</h3>
+            <p>Cannastation was created to allow passionate people to grow their own plants saving time and money. With an elegant App, growers can automate their entire cultivation. </p>
+            <p>Not only that, we provide guidance and best practices on how to cultivate your station in all phases of growing. Our team of specialists are always keen to help you to obtain the best our of your growth.</p>
+            <div class="icons-container">
+                <div class="icons">
+                    <i class="fas fa-shipping-fast"></i>
+                    <span>free delivery</span>
+                </div>
+                <div class="icons">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>easy payments</span>
+                </div>
+                <div class="icons">
+                    <i class="fas fa-headset"></i>
+                    <span>24/7 service</span>
+                </div>
+            </div>
+         
+        </div>
+    </div>
+
+  </section>
+    
+        
+        
+<!-- menu section starts  -->
+
+<section class="menu" id="menu">
+
+  <h3 class="sub-heading"> our plans </h3>
+  <h1 class="heading"> the station is for free! </h1>
+
+  <div class="box-container">
+      
+    <div class="box">
+          <div class="image">
+              <img src="images/menu-1.jpg" alt="">
+          </div>
+          <div class="content">
+              <h3>Monthly Plan</h3>
+              <div class="amount">
+                <span class="currency">CLP$</span>
+                <span class="price">30.000</span>
+                <span class="duration">/mo</span>
+              </div>
+              <div class="features">
+                <ul>
+                  <h4>Sensors:</h4>
+                  <li>Light</li>
+                  <li>Air Humidity</li>
+                  <li>Soil Humidity</li>
+                </ul>
+                <ul>
+                  <h4>Controls:</h4>
+                  <li>Light</li>
+                  <li>Fan</li>
+                  <li>Exhaust</li>
+                  <li>&nbsp</li>
+                </ul>
+              </div>
+              
+              <a href="#" class="btn">Select Plan</a>
+           </div><!-- End content -->
+    </div><!-- End box -->
+    <div class="box">
+      <div class="image">
+          <img src="images/menu-1.jpg" alt="">
+      </div>
+      <div class="content">
+          <h3>Yearly Plan</h3>
+          <div class="amount">
+            <span class="currency">CLP$</span>
+            <span class="price">20.000</span>
+            <span class="duration">/mo</span>
+          </div>
+          <div class="features">
+            <ul>
+              <h4>Sensors:</h4>
+              <li>Light</li>
+              <li>Air Humidity</li>
+              <li>Soil Humidity</li>
+            </ul>
+            <ul>
+              <h4>Controls:</h4>
+              <li>Light</li>
+              <li>Fan</li>
+              <li>Exhaust</li>
+              <li>Water</li>
+            </ul>
+          </div>
+          <a href="#" class="btn">Select Plan</a>
+       </div><!-- End content -->
+</div><!-- End box -->
+
+  </div><!-- End box container -->
+
+  </section>
+<!-- menu section ends -->
+
+
+  <footer></footer>
+  
+  <!-- <script src='src/js/station.js'></script>
+  <script src='src/js/modal.js'></script> -->
+  
+</body>
 </html>
