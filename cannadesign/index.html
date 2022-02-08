@@ -23,14 +23,14 @@
 
     <nav class="navbar">
       <a class="active" href="#home">home</a>
-      <a href="#howitworks"><i class="fas fa-info-circle"></i> How it works</a>
-      <a href="#plans"><i class="fas fa-money-check-alt"></i> Plans</a>
+      <a href="#about"><i class="fas fa-info-circle"></i> How it works</a>
+      <a href="#menu"><i class="fas fa-money-check-alt"></i> Plans</a>
     </nav>
 
     <div class="icons">
         <i class="fas fa-bars" id="menu-bars"></i>
-        <a href="#" class="fas fa-solid fa-leaf"></a><span>My Station</span>
-        <a href="#" class="fa fa-user"></a><span>Profile</span>
+        <a id="myStation" class="fas fa-solid fa-leaf"></a><span>My Station</span>
+        <a class="fa fa-user"></a><span id="profile">Profile</span>
     </div>
     
   </header>
@@ -120,7 +120,7 @@
                 </ul>
               </div>
               
-              <a href="#" class="btn">Select Plan</a>
+              <a href="#" class="btn" id="selectPlanMonthly">Select Plan</a>
            </div><!-- End content -->
     </div><!-- End box -->
     <div class="box">
@@ -149,7 +149,7 @@
               <li>Water</li>
             </ul>
           </div>
-          <a href="#" class="btn">Select Plan</a>
+          <a href="#" class="btn" id="selectPlanYearly">Select Plan</a>
        </div><!-- End content -->
 </div><!-- End box -->
 
@@ -161,6 +161,7 @@
 
   <footer></footer>
   
+  <script src="dist/index.bundle.js"></script>
   <!-- <script src='src/js/station.js'></script>
   <script src='src/js/modal.js'></script> -->
   
