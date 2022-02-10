@@ -99,7 +99,20 @@ int waterEveryXDay = 0;
 unsigned long lastWateredTime = 999; //epoch time seconds.
 int lastWateredHour = 999;
 int waterDurationSeconds = 0;
- 
+
+////////////////////////////////////////////// EVENT CALLBACK ////////////////////////////////////////////////////
+  void onEventsCallback(WebsocketsEvent event, String data) {
+    if(event == WebsocketsEvent::ConnectionOpened) {
+        Serial.println("Connnection Opened");
+    } else if(event == WebsocketsEvent::ConnectionClosed) {
+        Serial.println("----------------------------------------Connnection Closed-----------------------------------");
+    } else if(event == WebsocketsEvent::GotPing) {
+        Serial.println("Got a Ping!");
+    } else if(event == WebsocketsEvent::GotPong) {
+        Serial.println("Got a Pong!");
+    }
+}
+
 /////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
 
 void setup() {
@@ -494,6 +507,9 @@ void setup() {
     //int value = atoi(controlInfo[keys[1]]);
 
   }); //end of client callback
+
+  client.onEvent(onEventsCallback);
+
 
   /////////////////////////////////////////////END OF WS RECEIVE MESSAGES////////////////////////////////////////////////////
 
