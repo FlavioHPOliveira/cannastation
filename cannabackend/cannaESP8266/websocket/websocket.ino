@@ -99,32 +99,29 @@ int waterEveryXDay = 0;
 unsigned long lastWateredTime = 999; //epoch time seconds.
 int lastWateredHour = 999;
 int waterDurationSeconds = 0;
-
-////////////////////////////////////////////// EVENT CALLBACK ////////////////////////////////////////////////////
-  void onEventsCallback(WebsocketsEvent event, String data) {
-    if(event == WebsocketsEvent::ConnectionOpened) {
-        Serial.println("Connnection Opened");
-    } else if(event == WebsocketsEvent::ConnectionClosed) {
-        Serial.println("----------------------------------------Connnection Closed-----------------------------------");
-    } else if(event == WebsocketsEvent::GotPing) {
-        Serial.println("Got a Ping!");
-    } else if(event == WebsocketsEvent::GotPong) {
-        Serial.println("Got a Pong!");
-    }
-}
-
 /////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
 
-void setup() {
 
-  Serial.begin(115200);
+////////////////////////////////////////////// EVENT CALLBACK ////////////////////////////////////////////////////
+//  void onEventsCallback(WebsocketsEvent event, String data) {
+//    if(event == WebsocketsEvent::ConnectionOpened) {
+//        Serial.println("Connnection Opened");
+//    } else if(event == WebsocketsEvent::ConnectionClosed) {
+//        Serial.println("----------------------------------------Connnection Closed-----------------------------------");
+//    } else if(event == WebsocketsEvent::GotPing) {
+//        Serial.println("Got a Ping!");
+//    } else if(event == WebsocketsEvent::GotPong) {
+//        Serial.println("Got a Pong!");
+//    }
+//}
+
+////////////////////////////////////////////// BOARD SETUP METHOD////////////////////////////////////////////////////
+//built only to restart WS when connection fails.
+void mainSetup(){
 
   /////////////////////////////READ CONFIGURATION FROM FS JSON///////////////////////////////
-
   //clean FS, for testing
   //SPIFFS.format();
-
-  //read configuration from FS json
   delay(5000); //just to give me time to open serial monitor.....
   Serial.println("mounting FS...");
   
@@ -508,10 +505,19 @@ void setup() {
 
   }); //end of client callback
 
-  client.onEvent(onEventsCallback);
+  //client.onEvent(onEventsCallback);
 
 
   /////////////////////////////////////////////END OF WS RECEIVE MESSAGES////////////////////////////////////////////////////
+  
+}////////////////////////////////////////////////////////////////////////////////////////// END OF BOARD SETUP METHOD//////////////////////////////////////////////////////////////////////////////
+
+
+void setup() {
+
+  Serial.begin(115200);
+
+  mainSetup();
 
   /*Initialize temperature and humidity sensor.*/
   dht.begin();
@@ -767,10 +773,12 @@ void loop() {
     String controlString;
     serializeJson(controlDoc, controlString);
     client.send(controlString);
-
     ///////////////////////////////////////////// END OF SEND CONTROL DATA /////////////////////////////////////////////
 
-  } 
+  }else{
+    Serial.println("**************Client not available");
+    mainSetup();
+  }
 
   delay(1000);
 }
