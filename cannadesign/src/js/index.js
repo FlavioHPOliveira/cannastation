@@ -1,4 +1,17 @@
-const { db, auth, onAuthStateChanged, monitorAuthState, doc, getDoc, updateDoc } = require("./auth.js")
+const { 
+  db, 
+  auth, 
+  onAuthStateChanged, 
+  monitorAuthState, 
+  doc, 
+  getDoc, 
+  updateDoc,
+
+  loginEmailPassword, 
+  createAccount, 
+  logoutModal
+} = require("./auth.js")
+
 //console.log("teste station db:", db)
 //const user = getAuth().currentUser;
 //console.log("*station.js, auth:", auth)
@@ -8,22 +21,37 @@ let profile = document.querySelector('#profile');
 
 
 monitorAuthState().then( async  (user)=>{
-  console.log("my user:",user)
-  console.log("my user ID:", user.uid)
+  console.log("my user:",user) //user can be object or false
+  //console.log("my user ID:", user.uid)
 
-  const docRef = doc(db, "users", user.uid);
-  const docSnap = await getDoc(docRef);
+  if(user){
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
 
-  if (docSnap.exists()) {
-    console.log("*Product: Document data:", docSnap.data());
-    profile.innerHTML = docSnap.data().name;
-    
-  } else {
-    // doc.data() will be undefined in this case
-    console.log("No such document!");
+    if (docSnap.exists()) {
+      console.log("*Product: Document data:", docSnap.data());
+      profile.innerHTML = docSnap.data().name;
+      
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+    }
   }
   
+  
 })
+
+////////////LOGIN/////////////
+
+
+//////////////////LOGIN/////////////////////
+const btnLog = document.querySelector("#btnLogin")
+const btnSignUp = document.querySelector("#btnSignUp")
+const btnLogout = document.querySelector("#btnLogout")
+
+btnLog.addEventListener('click', loginEmailPassword)
+btnSignUp.addEventListener('click', createAccount)
+btnLogout.addEventListener('click',logoutModal)
 
 
 let menu = document.querySelector('#menu-bars');
