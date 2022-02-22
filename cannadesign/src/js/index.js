@@ -1,173 +1,113 @@
-// Import the functions you need from the SDKs you need
- 
-const { db } = require("./auth.js")
-import { initializeApp } from "firebase/app";
-import { getAuth, 
-  connectAuthEmulator, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "firebase/auth";
+const { 
+  db, 
+  auth, 
+  onAuthStateChanged, 
+  monitorAuthState, 
+  doc, 
+  getDoc, 
+  updateDoc,
 
-import { getFirestore,
-  collection, 
-  addDoc,
-  getDocs,
-  connectFirestoreEmulator,
-  query,
-  where
+  loginEmailPassword, 
+  createAccount, 
+  logoutModal
+} = require("./auth.js")
 
-} from "firebase/firestore";
-
-console.log("teste 2 db:", db)
-
-// //import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js";
-// //import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.3/firebase-auth.js";
-// // TODO: Add SDKs for Firebase products that you want to use
-// // https://firebase.google.com/docs/web/setup#available-libraries
+//console.log("teste station db:", db)
+//const user = getAuth().currentUser;
+//console.log("*station.js, auth:", auth)
 
 
-// // Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: "AIzaSyD1P_W4y62l8-OESX1jdW-ffuz4u  b3KE2M",
-//   authDomain: "cannafirebase.firebaseapp.com",
-//   projectId: "cannafirebase",
-//   storageBucket: "cannafirebase.appspot.com",
-//   messagingSenderId: "262309337307",
-//   appId: "1:262309337307:web:2e269d47d5485d0d6314fe"
-// };
+let profile = document.querySelector('#profile');
 
 
-// // Initialize Firebase
-// const firebaseApp = initializeApp(firebaseConfig);
-// const auth = getAuth(firebaseApp)
-// console.log("teste", auth)
+monitorAuthState().then( async  (user)=>{
+  console.log("my user:",user) //user can be object or false
+  //console.log("my user ID:", user.uid)
 
-// const db = getFirestore(firebaseApp);
+  if(user){
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
 
-// connectFirestoreEmulator(db, 'localhost', 8080);
-
-// const addStation = async () =>{
-//   console.log('entrei add Station')
-
-//   try {
-//     const docRef = await addDoc(collection(db, "station"), {
-//       email: "test@gmail.com",
-//       token: "token123",
-//       uID: "123456"
-//     });
-//     console.log("New Station Doc Inserted: ", docRef.id);
-//   } catch (e) {
-//     console.error("Error adding document: ", e);
-//   }
-
-// }
-
-// connectAuthEmulator(auth, "http://localhost:9099");
-
-// //addStation();
-// const queryStations = async () =>{
-//   console.log('entrei get Docs Station')
-//   const querySnapshot = await getDocs(collection(db, "station"));
-//   querySnapshot.forEach((doc) => {
-//     console.log(`${doc.id} => ${doc.data()}`);
-//   });
-// }
-// //queryStations();
-
-// const btnLog = document.querySelector("#btnLogin")
-// const btnSignUp = document.querySelector("#btnSignUp")
-// const btnLogout = document.querySelector("#btnLogout")
-// //console.log(btnLog)
-
-// const loginEmailPassword = async () => {
-//   const loginEmail = document.querySelector("#txtEmail").value;
-//   const loginPwd = document.querySelector("#txtPwd").value;
-//   try{
-//     const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPwd)
-//     console.log(userCredential.user)
-//   }catch(e){
-//     console.log(e)
-//     alert(e)
-//   }
-// }
-
-// const createAccount = async () =>{
-//   const loginEmail = document.querySelector("#txtEmail").value;
-//   const loginPwd = document.querySelector("#txtPwd").value;
-//   try{
-//     const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
-//     console.log(userCredential.user)
-//     localStorage.setItem("user", user);
-//     window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-   
-//   }catch(e){
-//     console.log(e)
-//     alert(e)
-//   }
-// }
-
-// btnLog.addEventListener('click', loginEmailPassword)
-// btnSignUp.addEventListener('click', createAccount)
-
-// const monitorAuthState = async () => {
-//   onAuthStateChanged(auth, user => {
-//     //if user signs in... open app
-//     if(user){
-//       console.log(user);
-//       console.log(user.uid)
-//       alert('you are logged in.')
-//       //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-//       //show application
-//       //showLoginState(user)
-//       //hideLoginError()
-//       //const myuser = auth.currentUser;
-//       setTokenLocalStorage(user.uid);
-//       //localStorage.setItem("token", token);
-//       //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-//       // if (myuser) {
-//       //   // User is signed in, see docs for a list of available properties
-//       //   // https://firebase.google.com/docs/reference/js/firebase.User
-//       //   console.log(myuser.displayName)
-//       //   // ...
-//       // } else {
-//       //   console.log("no user is signed in. monitor auth state")
-//       // }
+    if (docSnap.exists()) {
+      console.log("*Product: Document data:", docSnap.data());
+      profile.innerHTML = docSnap.data().name;
+      
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  }
   
-
-//     }
-//     //if user signs out, show register form.
-//     else{
-//       //show login form
-//       alert('you are logged out.')
-//     }
-//   })
-// }
-
-// monitorAuthState();
-
-// const logout = async () =>{
-//   await signOut(auth);
-//   //alert('you are signOut')
-// }
-
-// btnLogout.addEventListener('click',logout)
-
-// const setTokenLocalStorage = async (uid) =>{
   
-//   const q = query(collection(db, "station"), where("uID", "==", uid));
-//   const querySnapshot = await getDocs(q);
-//   let token = ""
-//   console.log('here')
-//   querySnapshot.forEach((doc) => {
-//     // doc.data() is never undefined for query doc snapshots
-//     //console.log(doc.id, " => ", doc.data());
-//     //console.log(doc.id, " => ", doc.data().token);
-//     token = doc.data().token
-//   });
+})
 
-//   localStorage.setItem("token", token);
+////////////LOGIN/////////////
 
+
+//////////////////LOGIN/////////////////////
+const btnLog = document.querySelector("#btnLogin")
+const btnSignUp = document.querySelector("#btnSignUp")
+const btnLogout = document.querySelector("#btnLogout")
+
+btnLog.addEventListener('click', loginEmailPassword)
+btnSignUp.addEventListener('click', createAccount)
+btnLogout.addEventListener('click',logoutModal)
+
+
+let menu = document.querySelector('#menu-bars');
+let navbar = document.querySelector('.navbar');
+
+menu.onclick = () =>{
+  menu.classList.toggle('fa-times');
+  navbar.classList.toggle('active');
+}
+
+let section = document.querySelectorAll('section');
+let navLinks = document.querySelectorAll('header .navbar a');
+const selectPlanMonthly = document.querySelector('#selectPlanMonthly');
+const selectPlanYearly = document.querySelector('#selectPlanYearly');
+const myStation = document.querySelector('#myStation');
+
+selectPlanMonthly.addEventListener('click', ()=>{
+  window.location.href = 'product.html'
+})
+selectPlanYearly.addEventListener('click', ()=>{
+  window.location.href = 'product.html'
+})
+myStation.addEventListener('click', ()=>{
+  window.location.href = 'station.html'
+})
+
+window.onscroll = () =>{
+
+  menu.classList.remove('fa-times');
+  navbar.classList.remove('active');
+
+  section.forEach(sec =>{
+
+    let top = window.scrollY;
+    let height = sec.offsetHeight;
+    let offset = sec.offsetTop - 150;
+    let id = sec.getAttribute('id');
+
+    if(top >= offset && top < offset + height){
+      navLinks.forEach(links =>{
+        links.classList.remove('active');
+        document.querySelector('header .navbar a[href*='+id+']').classList.add('active');
+      });
+    };
+
+  });
+
+}
+
+
+// function loader(){
+//   document.querySelector('.loader-container').classList.add('fade-out');
 // }
 
+// function fadeOut(){
+//   setInterval(loader, 3000);
+// }
+
+// window.onload = fadeOut;

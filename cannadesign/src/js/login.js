@@ -8,25 +8,6 @@ const { doc,
   createUserWithEmailAndPassword,
   db } = require("./auth.js")
 
-// import { initializeApp } from "firebase/app";
-// import { getAuth, 
-//   connectAuthEmulator, 
-//   signInWithEmailAndPassword, 
-//   createUserWithEmailAndPassword,
-//   onAuthStateChanged,
-//   signOut
-// } from "firebase/auth";
-
-// import { getFirestore,
-//   collection, 
-//   addDoc,
-//   getDocs,
-//   connectFirestoreEmulator,
-//   query,
-//   where
-
-// } from "firebase/firestore";
-
 console.log("teste 2 db:", db)
 
 // //import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js";
@@ -46,6 +27,7 @@ const loginEmailPassword = async () => {
   try{
     const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPwd)
     console.log(userCredential.user)
+    window.location.href = 'station.html'
   }catch(e){
     console.log(e)
     alert(e)
@@ -78,11 +60,20 @@ const createAccount = async () =>{
       console.error("Error adding document: ", e);
     }
 
-    window.location.href = 'product.html'
+    window.location.href = 'station.html'
 
-    //TODO
-    //salvar ussuario na collection do usuario, com todos usuarios que vem do 
    
+  }catch(e){
+    console.log(e)
+    alert(e)
+  }
+}
+
+const logoutModal = async () => {
+  try{
+    const userLogout = await logout()
+    console.log(userLogout)
+    window.location.href = 'index.html'
   }catch(e){
     console.log(e)
     alert(e)
@@ -91,64 +82,5 @@ const createAccount = async () =>{
 
 btnLog.addEventListener('click', loginEmailPassword)
 btnSignUp.addEventListener('click', createAccount)
-
-// const monitorAuthState = async () => {
-//   onAuthStateChanged(auth, user => {
-//     //if user signs in... open app
-//     if(user){
-//       console.log(user);
-//       console.log(user.uid)
-//       alert('you are logged in.')
-//       //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-//       //show application
-//       //showLoginState(user)
-//       //hideLoginError()
-//       //const myuser = auth.currentUser;
-//       setTokenLocalStorage(user.uid);
-//       //localStorage.setItem("token", token);
-//       //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
-//       // if (myuser) {
-//       //   // User is signed in, see docs for a list of available properties
-//       //   // https://firebase.google.com/docs/reference/js/firebase.User
-//       //   console.log(myuser.displayName)
-//       //   // ...
-//       // } else {
-//       //   console.log("no user is signed in. monitor auth state")
-//       // }
-  
-
-//     }
-//     //if user signs out, show register form.
-//     else{
-//       //show login form
-//       alert('you are logged out.')
-//     }
-//   })
-// }
-
-// monitorAuthState();
-
-// const logout = async () =>{
-//   await signOut(auth);
-//   //alert('you are signOut')
-// }
-
-btnLogout.addEventListener('click',logout)
-
-// const setTokenLocalStorage = async (uid) =>{
-  
-//   const q = query(collection(db, "station"), where("uID", "==", uid));
-//   const querySnapshot = await getDocs(q);
-//   let token = ""
-//   console.log('here')
-//   querySnapshot.forEach((doc) => {
-//     // doc.data() is never undefined for query doc snapshots
-//     //console.log(doc.id, " => ", doc.data());
-//     //console.log(doc.id, " => ", doc.data().token);
-//     token = doc.data().token
-//   });
-
-//   localStorage.setItem("token", token);
-
-// }
+btnLogout.addEventListener('click',logoutModal)
 

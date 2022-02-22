@@ -1,0 +1,217 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- <script src="https://kit.fontawesome.com/ae320467ae.js" crossorigin="anonymous"></script> -->
+  <!-- font awesome cdn link  -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+  <!-- custom css file link  -->
+  <!-- <link rel="stylesheet" href="src/css/styles.css"> -->
+  <link rel="stylesheet" href="src/css/index_styles.css">
+  <link rel="stylesheet" href="src/css/login.css">
+  
+  <title>Cannastation</title>
+</head>
+<body>
+
+
+  <header>
+    <!-- <a class="header__logo" href=""><img src="src/img/green-cannabis-leaf-simple-drawing-vector.jpg" alt="logo"></img>Cannastation</a> -->
+    <a class="logo" href="#"><i class="fas fa-cannabis"></i>Cannastation.</a>
+
+    <nav class="navbar">
+      <a class="active" href="#home">home</a>
+      <a href="#about"><i class="fas fa-info-circle"></i> How it works</a>
+      <a href="#menu"><i class="fas fa-money-check-alt"></i> Plans</a>
+    </nav>
+
+    <div class="icons">
+        <i class="fas fa-bars" id="menu-bars"></i>
+        <a id="myStation" class="fas fa-solid fa-leaf"></a><span>My Station</span>
+        <span id="profileAndIcon"><a class="fa fa-user"></a><span id="profile">Profile</span></span>
+    </div>
+    
+  </header>
+
+  <section class="home" id="home">
+    <div class="content">
+      <span>be free</span>
+      <h3>Growing made easy.</h3>
+      <p>Save time and money by Automating your growth with Cannastation</p>
+      <a href="#" class="btn">order now</a>
+    </div>
+    <div class="image">
+      <img src="src/img/home-1.jpg" alt="">
+    </div>
+  </section>
+
+  <section class="about" id="about">
+
+    <h3 class="sub-heading"> real time control </h3>
+    <h1 class="heading"> Monitor your grow in the App </h1>
+
+    <div class="row">
+
+        <div class="image">
+            <img src="src/img/StationControlGit.gif" alt="">
+        </div>
+
+        <div class="content">
+            <h3>Maximum quality and productivity.</h3>
+            <p>Cannastation was created to allow passionate people to grow their own plants saving time and money. With an elegant App, growers can automate their entire cultivation. </p>
+            <p>Not only that, we provide guidance and best practices on how to cultivate your station in all phases of growing. Our team of specialists are always keen to help you to obtain the best our of your growth.</p>
+            <div class="icons-container">
+                <div class="icons">
+                    <i class="fas fa-shipping-fast"></i>
+                    <span>free delivery</span>
+                </div>
+                <div class="icons">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>easy payments</span>
+                </div>
+                <div class="icons">
+                    <i class="fas fa-headset"></i>
+                    <span>24/7 service</span>
+                </div>
+            </div>
+         
+        </div>
+    </div>
+
+  </section>
+    
+        
+        
+<!-- menu section starts  -->
+
+<section class="menu" id="menu">
+
+  <h3 class="sub-heading"> our plans </h3>
+  <h1 class="heading"> the station is for free! </h1>
+
+  <div class="box-container">
+      
+    <div class="box">
+          <div class="image">
+              <img src="src/img/baby.png" alt="">
+          </div>
+          <div class="content">
+              <h3>Monthly Plan</h3>
+              <div class="amount">
+                <span class="currency">CLP$</span>
+                <span class="price">30.000</span>
+                <span class="duration">/mo</span>
+              </div>
+              <div class="features">
+                <ul>
+                  <h4>Sensors:</h4>
+                  <li>Light</li>
+                  <li>Air Humidity</li>
+                  <li>Soil Humidity</li>
+                </ul>
+                <ul>
+                  <h4>Controls:</h4>
+                  <li>Light</li>
+                  <li>Fan</li>
+                  <li>Exhaust</li>
+                  <li>&nbsp</li>
+                </ul>
+              </div>
+              
+              <a href="#" class="btn" id="selectPlanMonthly">Select Plan</a>
+           </div><!-- End content -->
+    </div><!-- End box -->
+    <div class="box">
+      <div class="image">
+          <img src="src/img/planting.png" alt="">
+      </div>
+      <div class="content">
+          <h3>Yearly Plan</h3>
+          <div class="amount">
+            <span class="currency">CLP$</span>
+            <span class="price">20.000</span>
+            <span class="duration">/mo</span>
+          </div>
+          <div class="features">
+            <ul>
+              <h4>Sensors:</h4>
+              <li>Light</li>
+              <li>Air Humidity</li>
+              <li>Soil Humidity</li>
+            </ul>
+            <ul>
+              <h4>Controls:</h4>
+              <li>Light</li>
+              <li>Fan</li>
+              <li>Exhaust</li>
+              <li>Water</li>
+            </ul>
+          </div>
+          <a href="#" class="btn" id="selectPlanYearly">Select Plan</a>
+       </div><!-- End content -->
+</div><!-- End box -->
+
+  </div><!-- End box container -->
+
+  </section>
+<!-- menu section ends -->
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Login</h1>
+        <p id="createAccount">Click here to create an account</p>
+          <br/>
+          <label for="email"><b>Email</b></label>
+          <input type="text" id="txtEmailLogin" placeholder="Enter Email" name="email" required>
+          <label for="psw"><b>Password</b></label>
+          <input type="password" id="txtPwdLogin" placeholder="Enter Password" name="psw" required>
+          <br/>
+          <br/>
+          <button type="button" id="btnLogin" name="btnLogin" class="btnSignUp">Login</button>
+  </div>
+</div>
+
+
+<!-- REGISTER MODAL -->
+<div id="registerModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Sign Up</h1>
+          <br/>
+          <label for="txtName"><b>Name</b></label>
+          <input type="text" id="txtNameRegister" placeholder="Enter Name" name="name" required>
+          <label for="email"><b>Email</b></label>
+          <input type="text" id="txtEmailRegister" placeholder="Enter Email" name="email" required>
+          <label for="psw"><b>Password</b></label>
+          <input type="password" id="txtPwdRegister" placeholder="Enter Password" name="psw" required>
+          <br/>
+          <br/>          
+          <button type="button" id="btnSignUp" name="btnLogin"class="btnSignUp">Sign Up</button>
+  </div>
+</div>
+
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Logout</h1>
+          <br/>
+          <button type="button" id="btnLogout" name="btnLogout"class="cancelbtn">Log out</button>
+  </div>
+</div>
+
+  <footer></footer>
+  
+  <script src="dist/index.bundle.js"></script>
+  <!-- <script src='src/js/station.js'></script>
+  <script src='src/js/modal.js'></script> -->
+  
+</body>
+</html>

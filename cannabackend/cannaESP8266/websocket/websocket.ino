@@ -94,25 +94,35 @@ int exhaustAirHumidityOn = 999;
 int waterAuto     = 0;
 int waterOn       = 1;
 int waterStartingHour = 0;
-int waterEveryXHour = 0;
+//int waterEveryXHour = 0;
 int waterEveryXDay = 0;
 unsigned long lastWateredTime = 999; //epoch time seconds.
 int lastWateredHour = 999;
 int waterDurationSeconds = 0;
- 
 /////////////////////////////////END VARIABLES DECLARATION/////////////////////////////////////
 
-void setup() {
 
-  Serial.begin(115200);
+////////////////////////////////////////////// EVENT CALLBACK ////////////////////////////////////////////////////
+//  void onEventsCallback(WebsocketsEvent event, String data) {
+//    if(event == WebsocketsEvent::ConnectionOpened) {
+//        Serial.println("Connnection Opened");
+//    } else if(event == WebsocketsEvent::ConnectionClosed) {
+//        Serial.println("----------------------------------------Connnection Closed-----------------------------------");
+//    } else if(event == WebsocketsEvent::GotPing) {
+//        Serial.println("Got a Ping!");
+//    } else if(event == WebsocketsEvent::GotPong) {
+//        Serial.println("Got a Pong!");
+//    }
+//}
+
+////////////////////////////////////////////// BOARD SETUP METHOD////////////////////////////////////////////////////
+//built only to restart WS when connection fails.
+void mainSetup(){
 
   /////////////////////////////READ CONFIGURATION FROM FS JSON///////////////////////////////
-
   //clean FS, for testing
   //SPIFFS.format();
-
-  //read configuration from FS json
-  delay(5000); //just to give me time to open serial monitor.....
+  //delay(5000); //just to give me time to open serial monitor.....
   Serial.println("mounting FS...");
   
 
@@ -321,7 +331,11 @@ void setup() {
   
   token = tokenChar;
   Serial.println(token);
-  connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
+  //connectionURL = "ws://192.168.0.213:3000/?token=" + token + "?clientType=board";
+  //connectionURL = "ws://192.168.100.119:3000/?token=" + token + "?clientType=board";
+  //connectionURL = "ws://localhost/?token=" + token + "?clientType=board";
+  
+  connectionURL = "ws://cannastation.herokuapp.com/?token=" + token + "?clientType=board";
   Serial.println(connectionURL);
 
   //5 seconds delay to give some time before connecting the WS. didnt work that wel...only on first time! 
@@ -461,7 +475,7 @@ void setup() {
 
         waterAuto = 1;
         waterStartingHour = (int)messageJSON["waterStartingHour"];
-        waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
+        //waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
         waterEveryXDay    = (int)messageJSON["waterEveryXDay"];
         //lastWateredTime   = (int)messageJSON["lastWateredTime"]; // doesnt come from user...
         waterDurationSeconds   = (int)messageJSON["waterDurationSeconds"];
@@ -493,7 +507,19 @@ void setup() {
 
   }); //end of client callback
 
+  //client.onEvent(onEventsCallback);
+
+
   /////////////////////////////////////////////END OF WS RECEIVE MESSAGES////////////////////////////////////////////////////
+  
+}////////////////////////////////////////////////////////////////////////////////////////// END OF BOARD SETUP METHOD//////////////////////////////////////////////////////////////////////////////
+
+
+void setup() {
+
+  Serial.begin(115200);
+
+  mainSetup();
 
   /*Initialize temperature and humidity sensor.*/
   dht.begin();
@@ -531,7 +557,8 @@ void loop() {
   Serial.print(":");
   Serial.println(currentSecond);
   
-  String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond);
+  //String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond);
+  String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + formattedTime;
   //String formattedTime = timeClient.getFormattedTime();
   
   /////////////////////////////////// PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
@@ -666,7 +693,7 @@ void loop() {
         //if it is day of watering, check if it is time.
         if( remainderDaysDiff == 0 ){
           //if it is time to water, and last watered hour is not current hour, should turn on.
-          if( waterEveryXHour == currentHour && lastWateredHour != currentHour ){
+          if( waterStartingHour == currentHour && lastWateredHour != currentHour ){
               Serial.println("Insisde Turn WATER On");
               waterOn = 0;
               pinMode(GPIO_WATER, OUTPUT);
@@ -706,58 +733,74 @@ void loop() {
   
   client.poll();
   
-  // let the websockets client check for incoming messages
-  if (client.available()) {
-    //Serial.println("Print before client pool");
-    //client.poll();
-    //Serial.println("Client available after pool");
+  //If there is wifi, check if there is WS client available.
+  if( WiFi.status() == WL_CONNECTED ){
 
-    ///////////////////////////////////////////// SEND SENSOR DATA /////////////////////////////////////////////
-    String temperature = String(dht.readTemperature());
-    String airHumidity    = String(dht.readHumidity());
-
-    int    soilMoistureInt        = map(analogRead(soilPIN), aire, agua, 0, 100);
-    String soilMoistureString     = String(soilMoistureInt);
-    String JSONType               = "{\"type\":\"sensor\"";
-    String currDateTime           = "\"dateTime\":\"" + currentDate + "\"";
-    String sensorJSONTemperature  = "\"temperature\":\"" + temperature + "\"";
-    String sensorJSONAirHumidity  = "\"airHumidity\":\"" + airHumidity + "\"";
-    String sensorJSONSoilMoisture = "\"soilMoisture\":\"" + soilMoistureString + "\"}";
-
-    String sensorJSONConcat = JSONType + "," + currDateTime + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
+    if (client.available()) {
+      //Serial.println("Print before client pool");
+      //client.poll();
+      //Serial.println("Client available after pool");
+  
+      ///////////////////////////////////////////// SEND SENSOR DATA /////////////////////////////////////////////
+      String temperature = String(dht.readTemperature());
+      String airHumidity    = String(dht.readHumidity());
+  
+      int    soilMoistureInt        = map(analogRead(soilPIN), aire, agua, 0, 100);
+      String soilMoistureString     = String(soilMoistureInt);
+      String JSONType               = "{\"type\":\"sensor\"";
+      String currDateTime           = "\"dateTime\":\"" + currentDate + "\"";
+      String sensorJSONTemperature  = "\"temperature\":\"" + temperature + "\"";
+      String sensorJSONAirHumidity  = "\"airHumidity\":\"" + airHumidity + "\"";
+      String sensorJSONSoilMoisture = "\"soilMoisture\":\"" + soilMoistureString + "\"}";
+  
+      String sensorJSONConcat = JSONType + "," + currDateTime + "," + sensorJSONTemperature + "," + sensorJSONAirHumidity + "," + sensorJSONSoilMoisture;
+      
+      Serial.print("*Serial:Sensor data ");
+      Serial.println(sensorJSONConcat);
+  
+      client.send(sensorJSONConcat);
+      ///////////////////////////////////////////// END OF SEND SENSOR DATA /////////////////////////////////////////////
+  
+      ///////////////////////////////////////////// SEND CONTROL DATA /////////////////////////////////////////////
+  
+      DynamicJsonDocument controlDoc(1024);
+      controlDoc["type"] = "controlState";
+      controlDoc["lightAuto"] = lightAuto; 
+      controlDoc["lightOn"] = lightOn;
+      controlDoc["fanAuto"] = fanAuto; 
+      controlDoc["fanOn"] = fanOn;
+      controlDoc["exhaustAuto"] = exhaustAuto; 
+      controlDoc["exhaustOn"] = exhaustOn;
+      controlDoc["waterAuto"] = waterAuto; 
+      controlDoc["waterOn"] = waterOn;
+      serializeJson(controlDoc, Serial);
+      
+      String controlString;
+      serializeJson(controlDoc, controlString);
+      client.send(controlString);
+      ///////////////////////////////////////////// END OF SEND CONTROL DATA /////////////////////////////////////////////
+  
+    }else{
+      Serial.println("**************WS Client not available. Restarting Board.");
+      //mainSetup();
+      delay(5000);
+      
+      if (!client.available()){
+        Serial.println("**************WS Client not available. AFTER DELAY still not available Restarting Board.");
+        ESP.restart();
+      }
+      
+    }
+  }
+  
+  //ELSE WIFI IS NOT CONNNECTED
+  else{
+    Serial.println("*************WIFI NOT CONNECTED");
+    delay(3000);
+  }
     
-    Serial.print("*Serial:Sensor data ");
-    Serial.println(sensorJSONConcat);
-
-    client.send(sensorJSONConcat);
-    ///////////////////////////////////////////// END OF SEND SENSOR DATA /////////////////////////////////////////////
-
-    ///////////////////////////////////////////// SEND CONTROL DATA /////////////////////////////////////////////
-
-    DynamicJsonDocument controlDoc(1024);
-    controlDoc["type"] = "controlState";
-    controlDoc["lightAuto"] = lightAuto; 
-    controlDoc["lightOn"] = lightOn;
-    controlDoc["fanAuto"] = fanAuto; 
-    controlDoc["fanOn"] = fanOn;
-    controlDoc["exhaustAuto"] = exhaustAuto; 
-    controlDoc["exhaustOn"] = exhaustOn;
-    controlDoc["waterAuto"] = waterAuto; 
-    controlDoc["waterOn"] = waterOn;
-    serializeJson(controlDoc, Serial);
-    
-    String controlString;
-    serializeJson(controlDoc, controlString);
-    client.send(controlString);
-
-    ///////////////////////////////////////////// END OF SEND CONTROL DATA /////////////////////////////////////////////
-
-  } 
-
   delay(1000);
 }
-
-
 
 ///////HELPER FUNCTIONS/////
 

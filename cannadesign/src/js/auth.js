@@ -64,7 +64,7 @@ return new Promise(function(resolve, reject) {
       //showLoginState(user)
       //hideLoginError()
       //const myuser = auth.currentUser;
-      setTokenLocalStorage(user.uid);
+      //setTokenLocalStorage(user.uid);
       //localStorage.setItem("token", token);
       //window.location = 'http://localhost:5501/cannadesign/dist/station.html'
       // if (myuser) {
@@ -80,10 +80,10 @@ return new Promise(function(resolve, reject) {
     //if user signs out, show register form.
     else{
       //show login form
-      if(window.location.pathname !== "/cannadesign/login.html"){
-        window.location.href = "/cannadesign/login.html"
-      }
-      console.log('you are logged out.')
+      // if(window.location.pathname !== "/login.html"){
+      //   window.location.href = "/login.html"
+      // }
+      console.log('No User logged in.')
       resolve(false);
     }
   })
@@ -108,22 +108,86 @@ const getUserTest = () =>{
   console.log("user test", user)
 }
 
-const setTokenLocalStorage = async (uid) =>{
+// const setTokenLocalStorage = async (uid) =>{
   
-  const q = query(collection(db, "station"), where("uID", "==", uid));
-  const querySnapshot = await getDocs(q);
-  let token = ""
-  console.log('here')
-  querySnapshot.forEach((doc) => {
-    // doc.data() is never undefined for query doc snapshots
-    //console.log(doc.id, " => ", doc.data());
-    //console.log(doc.id, " => ", doc.data().token);
-    token = doc.data().token
-  });
+//   const q = query(collection(db, "station"), where("uID", "==", uid));
+//   const querySnapshot = await getDocs(q);
+//   let token = ""
+//   console.log('here')
+//   querySnapshot.forEach((doc) => {
+//     // doc.data() is never undefined for query doc snapshots
+//     //console.log(doc.id, " => ", doc.data());
+//     //console.log(doc.id, " => ", doc.data().token);
+//     token = doc.data().token
+//   });
 
-  localStorage.setItem("token", token);
+//   localStorage.setItem("token", token);
 
+// }
+
+// //console.log(btnLog)
+
+const loginEmailPassword = async () => {
+  const loginEmail = document.querySelector("#txtEmailLogin").value;
+  const loginPwd = document.querySelector("#txtPwdLogin").value;
+  try{
+    const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPwd)
+    console.log(userCredential.user)
+    window.location.href = 'station.html'
+  }catch(e){
+    console.log(e)
+    alert(e)
+  }
 }
 
+const createAccount = async () =>{
+  const loginEmail = document.querySelector("#txtEmailRegister").value;
+  const loginPwd = document.querySelector("#txtPwdRegister").value;
+  const name = document.querySelector("#txtNameRegister").value;
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
+    console.log(userCredential.user)
+    //localStorage.setItem("user", userCredential.user);
+
+    try {
+      //TODO
+      //Create mechanism to generate tokens when user buys a board.
+      //const boardToken = userCredential.user.email.substring(0,3) + userCredential.user.uid.substring(0,3)
+      //console.log("boardToken: ", boardToken)
+      const docRef = await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: name,
+        email: userCredential.user.email,
+        uID: userCredential.user.uid,
+        boardDefault: null,
+        boards: []
+      });
+      console.log("New Station Doc Inserted: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+
+    window.location.href = 'station.html'
+
+   
+  }catch(e){
+    console.log(e)
+    alert(e)
+  }
+}
+
+const logoutModal = async () => {
+  try{
+    const userLogout = await logout()
+    console.log(userLogout)
+    window.location.href = 'index.html'
+  }catch(e){
+    console.log(e)
+    alert(e)
+  }
+}
+
+
+
 export { doc, setDoc, collection, auth, logout, signInWithEmailAndPassword, 
-         createUserWithEmailAndPassword, onAuthStateChanged, db, monitorAuthState, getDoc, updateDoc };
+         createUserWithEmailAndPassword, onAuthStateChanged, db, monitorAuthState, getDoc, updateDoc,
+         loginEmailPassword, createAccount, logoutModal };
