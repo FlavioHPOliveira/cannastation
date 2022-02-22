@@ -327,10 +327,10 @@ monitorAuthState().then( async  (user)=>{
       const lightAutoJSON = {
         type: "control_auto",
         control: "light",
-        hourOn:    document.getElementById("hourOn").value,
-        hourOff:   document.getElementById("hourOff").value,
-        minuteOn:  document.getElementById("minuteOn").value,
-        minuteOff: document.getElementById("minuteOff").value
+        hourOn:    parseInt(document.getElementById("hourOn").value),
+        hourOff:   parseInt(document.getElementById("hourOff").value),
+        minuteOn:  parseInt(document.getElementById("minuteOn").value),
+        minuteOff: parseInt(document.getElementById("minuteOff").value)
       }
 
       const lightAutoStringfy = JSON.stringify(lightAutoJSON)
@@ -376,7 +376,7 @@ monitorAuthState().then( async  (user)=>{
       const waterAutoJSON = {
         type:    "control_auto",
         control: "water",
-        waterStartingHour:    document.getElementById("waterStartingHour").value,
+        waterStartingHour:    parseInt(document.getElementById("waterStartingHour").value),
         waterEveryXDay:       parseInt(document.getElementById("waterEveryXDay").value),
         waterDurationSeconds: parseInt(document.getElementById("waterDurationSeconds").value)
         
