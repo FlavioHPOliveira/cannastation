@@ -94,7 +94,7 @@ int exhaustAirHumidityOn = 999;
 int waterAuto     = 0;
 int waterOn       = 1;
 int waterStartingHour = 0;
-int waterEveryXHour = 0;
+//int waterEveryXHour = 0;
 int waterEveryXDay = 0;
 unsigned long lastWateredTime = 999; //epoch time seconds.
 int lastWateredHour = 999;
@@ -475,7 +475,7 @@ void mainSetup(){
 
         waterAuto = 1;
         waterStartingHour = (int)messageJSON["waterStartingHour"];
-        waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
+        //waterEveryXHour   = (int)messageJSON["waterEveryXHour"];
         waterEveryXDay    = (int)messageJSON["waterEveryXDay"];
         //lastWateredTime   = (int)messageJSON["lastWateredTime"]; // doesnt come from user...
         waterDurationSeconds   = (int)messageJSON["waterDurationSeconds"];
@@ -557,7 +557,8 @@ void loop() {
   Serial.print(":");
   Serial.println(currentSecond);
   
-  String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond);
+  //String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond);
+  String currentDate = String(monthDay) + "/" + String(currentMonth) + "/" + String(currentYear) + " " + formattedTime;
   //String formattedTime = timeClient.getFormattedTime();
   
   /////////////////////////////////// PROCESS AUTOMATIC CONTROLS ////////////////////////////////////
@@ -692,7 +693,7 @@ void loop() {
         //if it is day of watering, check if it is time.
         if( remainderDaysDiff == 0 ){
           //if it is time to water, and last watered hour is not current hour, should turn on.
-          if( waterEveryXHour == currentHour && lastWateredHour != currentHour ){
+          if( waterStartingHour == currentHour && lastWateredHour != currentHour ){
               Serial.println("Insisde Turn WATER On");
               waterOn = 0;
               pinMode(GPIO_WATER, OUTPUT);
