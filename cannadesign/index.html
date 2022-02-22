@@ -10,7 +10,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
   <!-- custom css file link  -->
+  <!-- <link rel="stylesheet" href="src/css/styles.css"> -->
   <link rel="stylesheet" href="src/css/index_styles.css">
+  <link rel="stylesheet" href="src/css/login.css">
   
   <title>Cannastation</title>
 </head>
@@ -30,7 +32,7 @@
     <div class="icons">
         <i class="fas fa-bars" id="menu-bars"></i>
         <a id="myStation" class="fas fa-solid fa-leaf"></a><span>My Station</span>
-        <a class="fa fa-user"></a><span id="profile">Profile</span>
+        <span id="profileAndIcon"><a class="fa fa-user"></a><span id="profile">Profile</span></span>
     </div>
     
   </header>
@@ -158,6 +160,52 @@
   </section>
 <!-- menu section ends -->
 
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Login</h1>
+        <p id="createAccount">Click here to create an account</p>
+          <br/>
+          <label for="email"><b>Email</b></label>
+          <input type="text" id="txtEmailLogin" placeholder="Enter Email" name="email" required>
+          <label for="psw"><b>Password</b></label>
+          <input type="password" id="txtPwdLogin" placeholder="Enter Password" name="psw" required>
+          <br/>
+          <br/>
+          <button type="button" id="btnLogin" name="btnLogin" class="btnSignUp">Login</button>
+  </div>
+</div>
+
+
+<!-- REGISTER MODAL -->
+<div id="registerModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Sign Up</h1>
+          <br/>
+          <label for="txtName"><b>Name</b></label>
+          <input type="text" id="txtNameRegister" placeholder="Enter Name" name="name" required>
+          <label for="email"><b>Email</b></label>
+          <input type="text" id="txtEmailRegister" placeholder="Enter Email" name="email" required>
+          <label for="psw"><b>Password</b></label>
+          <input type="password" id="txtPwdRegister" placeholder="Enter Password" name="psw" required>
+          <br/>
+          <br/>          
+          <button type="button" id="btnSignUp" name="btnLogin"class="btnSignUp">Sign Up</button>
+  </div>
+</div>
+
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+        <h1>Logout</h1>
+          <br/>
+          <button type="button" id="btnLogout" name="btnLogout"class="cancelbtn">Log out</button>
+  </div>
+</div>
 
   <footer></footer>
   

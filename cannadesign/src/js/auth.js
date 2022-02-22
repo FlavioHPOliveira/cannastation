@@ -128,8 +128,8 @@ const getUserTest = () =>{
 // //console.log(btnLog)
 
 const loginEmailPassword = async () => {
-  const loginEmail = document.querySelector("#txtEmail").value;
-  const loginPwd = document.querySelector("#txtPwd").value;
+  const loginEmail = document.querySelector("#txtEmailLogin").value;
+  const loginPwd = document.querySelector("#txtPwdLogin").value;
   try{
     const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPwd)
     console.log(userCredential.user)
@@ -141,9 +141,9 @@ const loginEmailPassword = async () => {
 }
 
 const createAccount = async () =>{
-  const loginEmail = document.querySelector("#txtEmail").value;
-  const loginPwd = document.querySelector("#txtPwd").value;
-  const name = document.querySelector("#txtName").value;
+  const loginEmail = document.querySelector("#txtEmailRegister").value;
+  const loginPwd = document.querySelector("#txtPwdRegister").value;
+  const name = document.querySelector("#txtNameRegister").value;
   try{
     const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginPwd)
     console.log(userCredential.user)
