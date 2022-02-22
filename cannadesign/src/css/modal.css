@@ -19,7 +19,11 @@
   margin: auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 80%;
+  width: 40%;
+}
+
+.automatic__settings button {
+  margin-left: 42%;
 }
 
 /* The Close Button */
@@ -35,4 +39,19 @@
   color: #000;
   text-decoration: none;
   cursor: pointer;
+}
+
+.modal__water__fields {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+}
+
+.modal__water__fields__line {
+  margin-top: 10px;
+  flex-grow: 1;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  margin-right: 30%;
 }

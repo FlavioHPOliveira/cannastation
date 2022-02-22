@@ -254,15 +254,20 @@
       <div class="automatic__settings">
         <p>Define the starting hour of watering, the frequency in days, and duration in seconds:</p>
         
-        <label for="waterStartingHour">Start watering at hour:</label>
-        <input type="text" id="waterStartingHour">
-        <br/>
-        <label for="waterEveryXDay">Water every X Days:</label>
-        <input type="text" id="waterEveryXDay">
-        <br/>
-        <label for="waterDurationSeconds">Duration of watering in seconds:</label>
-        <input type="text" id="waterDurationSeconds">
-        <br/>
+        <div class="modal__water__fields">    
+          <div class="modal__water__fields__line">
+            <label for="waterStartingHour">Start watering at hour:</label>
+            <input type="text" id="waterStartingHour">
+          </div>  
+          <div class="modal__water__fields__line">
+            <label for="waterEveryXDay">Water every X Days:</label>
+            <input type="text" id="waterEveryXDay">
+          </div>  
+          <div class="modal__water__fields__line">
+            <label for="waterDurationSeconds">Duration of watering in seconds:</label>
+            <input type="text" id="waterDurationSeconds">
+          </div>  
+        </div>
         <br/>
         <button id="auto_water_apply" class="control__buttonOnOff">Apply</button>
       </div>
