@@ -214,6 +214,9 @@ void mainSetup(){
   
   //set config save notify callback (is there a case where I dont want it to be saved? not sure this is necessary..)
   wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  //If you need to set a timeout so the ESP doesn't hang waiting to be configured, for instance after a power failure
+  wifiManager.setConfigPortalTimeout( 60 * 2 ); //seconds
   //set static ip
   //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
   //wifiManager.autoConnect("Cannastation");
