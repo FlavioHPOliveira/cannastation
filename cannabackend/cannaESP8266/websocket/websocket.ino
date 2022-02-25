@@ -75,10 +75,10 @@ int GPIO_WATER   = 2;
 //Light Control Variables
 int lightAuto       = 0;
 int lightOn         = 1;  //0 is ON, 1 is OFF
-int lightHourOn     = 17;
-int lightMinuteOn   = 52;
-int lightHourOf     = 17;
-int lightMinuteOff  = 53;
+int lightHourOn     = 99;
+int lightMinuteOn   = 99;
+int lightHourOf     = 99;
+int lightMinuteOff  = 99;
 
 //Fan Control Variables
 int fanAuto       = 0;
@@ -765,16 +765,27 @@ void loop() {
       ///////////////////////////////////////////// END OF SEND SENSOR DATA /////////////////////////////////////////////
   
       ///////////////////////////////////////////// SEND CONTROL DATA /////////////////////////////////////////////
-  
+
+      String lightOnAt = String(lightHourOn) + ":" + String(lightMinuteOn);
+      String lightOffAt = String(lightHourOf) + ":" + String(lightMinuteOff);
+    
       DynamicJsonDocument controlDoc(1024);
       controlDoc["type"] = "controlState";
       controlDoc["lightAuto"] = lightAuto; 
+      controlDoc["lightOnAt"] = lightOnAt;
+      controlDoc["lightOffAt"] = lightOffAt;
       controlDoc["lightOn"] = lightOn;
       controlDoc["fanAuto"] = fanAuto; 
+      controlDoc["fanTempOn"] = fanTempOn;
       controlDoc["fanOn"] = fanOn;
       controlDoc["exhaustAuto"] = exhaustAuto; 
+      controlDoc["exhaustAirHumidityOn"] = exhaustAirHumidityOn; 
       controlDoc["exhaustOn"] = exhaustOn;
-      controlDoc["waterAuto"] = waterAuto; 
+      controlDoc["waterAuto"] = waterAuto;
+      controlDoc["waterEveryXDay"] = waterEveryXDay;
+      controlDoc["waterStartingHour"] = waterStartingHour;
+      controlDoc["waterDurationSeconds"] = waterDurationSeconds;
+
       controlDoc["waterOn"] = waterOn;
       serializeJson(controlDoc, Serial);
       
