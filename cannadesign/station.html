@@ -96,7 +96,7 @@
 
                 <ul class="control__line">
                   <li>Mode</li>
-                  <li>Manual</li>
+                  <li id="lightModeLabel">Manual</li>
                 </ul>
 
                 <ul class="control__line">
@@ -120,7 +120,7 @@
 
                 <ul class="control__line">
                   <li>Mode</li>
-                  <li>Manual</li>
+                  <li id="fanModeLabel">Manual</li>
                 </ul>
 
                 <ul class="control__line">
@@ -144,7 +144,7 @@
           
                 <ul class="control__line">
                   <li>Mode</li>
-                  <li>Manual</li>
+                  <li id="exhaustModeLabel">Manual</li>
                 </ul>
 
                 <ul class="control__line">
@@ -170,7 +170,7 @@
 
                 <ul class="control__line">
                   <li>Mode</li>
-                  <li>Manual</li>
+                  <li id="waterModeLabel">Manual</li>
                 </ul>
 
                 <ul class="control__line">
@@ -207,8 +207,13 @@
         <input type="text" id="minuteOff">
         <br/>
         <br/>
-        <button id="auto_light_apply" class="control__buttonOnOff">Apply</button>
-
+        <div id="lightCurrentSettings" style="display:none">
+          <p>Current Settings:</p>
+          <p>Lights ON At:   <span id="currSettLightOnAt"></span></p>
+          <p>Lights OFF At: <span id="currSettLightOffAt"></span></p>
+        </div>
+          <button id="auto_light_apply" class="control__buttonOnOff">Apply</button>
+        
       </div>
     </div>
 
@@ -225,6 +230,10 @@
         <input type="text" id="fanTempOn">
         <br/>
         <br/>
+        <div id="fanCurrentSettings" style="display:none">
+          <p>Current Settings:</p>
+          <p>Fan ON At Temperature greater than or equal:  <span id="currSettFanTempOn"></span></p>
+        </div>
         <button id="auto_fan_apply" class="control__buttonOnOff">Apply</button>
       </div>
     </div>
@@ -241,6 +250,10 @@
         <input type="text" id="exhaustAirHumidityOn">
         <br/>
         <br/>
+        <div id="exhaustCurrentSettings" style="display:none">
+          <p>Current Settings:</p>
+          <p>Exhaustor ON when Air Humidity is greater than or equal:  <span id="currSettExhaustAirHumidityOn"></span></p>
+        </div>
         <button id="auto_exhaust_apply" class="control__buttonOnOff">Apply</button>
       </div>
     </div>
@@ -269,6 +282,12 @@
           </div>  
         </div>
         <br/>
+        <div id="waterCurrentSettings" style="display:none">
+          <p>Current Settings:</p>
+          <p>Start watering at hour: <span id="currSettWaterEveryXDay"></span></p>
+          <p>Water every X Days:     <span id="currSettWaterStartingHour"></span></p>
+          <p>Duration of watering in seconds: <span id="currSettWaterDurationSeconds"></span></p>
+        </div>
         <button id="auto_water_apply" class="control__buttonOnOff">Apply</button>
       </div>
     </div>

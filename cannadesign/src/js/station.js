@@ -91,6 +91,42 @@ monitorAuthState().then( async  (user)=>{
 
           }else if( sensorData?.type == "controlState" ){
             
+            lightCurrentSettings = document.getElementById("lightCurrentSettings")
+            lightModeLabel = document.getElementById("lightModeLabel")
+            if(sensorData?.lightAuto){
+              lightModeLabel.innerHTML = sensorData?.lightAuto ? 'Automatic' : 'Manual';
+              lightCurrentSettings.style.display = "block";
+              document.getElementById("currSettLightOnAt").innerHTML = sensorData?.lightOnAt;
+              document.getElementById("currSettLightOffAt").innerHTML = sensorData?.lightOffAt;
+              
+            }
+
+            fanCurrentSettings = document.getElementById("fanCurrentSettings")
+            fanModeLabel = document.getElementById("fanModeLabel")
+            if(sensorData?.fanAuto){
+              fanModeLabel.innerHTML = sensorData?.fanAuto ? 'Automatic' : 'Manual';
+              fanCurrentSettings.style.display = "block";
+              document.getElementById("currSettFanTempOn").innerHTML = sensorData?.fanTempOn;
+            }
+
+            exhaustCurrentSettings = document.getElementById("exhaustCurrentSettings")
+            exhaustModeLabel = document.getElementById("exhaustModeLabel")
+            if(sensorData?.exhaustAuto){
+              exhaustModeLabel.innerHTML = sensorData?.exhaustAuto ? 'Automatic' : 'Manual';
+              exhaustCurrentSettings.style.display = "block";
+              document.getElementById("currSettExhaustAirHumidityOn").innerHTML = sensorData?.exhaustAirHumidityOn;
+            }
+
+            waterCurrentSettings = document.getElementById("waterCurrentSettings")
+            waterModeLabel = document.getElementById("waterModeLabel")
+            if(sensorData?.waterAuto){
+              waterModeLabel.innerHTML = sensorData?.waterAuto ? 'Automatic' : 'Manual';
+              waterCurrentSettings.style.display = "block";
+              document.getElementById("currSettWaterEveryXDay").innerHTML = sensorData?.waterEveryXDay;
+              document.getElementById("currSettWaterStartingHour").innerHTML = sensorData?.waterStartingHour;
+              document.getElementById("currSettWaterDurationSeconds").innerHTML = sensorData?.waterDurationSeconds;
+            }
+            
             //SET UP Cards classes
             //LIGHT
             //function approach...not sure need this.
@@ -212,6 +248,9 @@ monitorAuthState().then( async  (user)=>{
         const lightControlCard = document.getElementById("lightControlCard")
         const lightPowerIcon   = document.getElementById("lightPowerIcon")
 
+        document.getElementById("lightCurrentSettings").style.display = "none";
+        document.getElementById("lightModeLabel").innerHTML = "Manual";
+
         console.log(lightButton.value);
         let lightControlMessage = ''
 
@@ -240,6 +279,9 @@ monitorAuthState().then( async  (user)=>{
     const fanControlCard = document.getElementById("fanControlCard")
     const fanPowerIcon   = document.getElementById("fanPowerIcon")
 
+    document.getElementById("fanCurrentSettings").style.display = "none";
+    document.getElementById("fanModeLabel").innerHTML = "Manual";
+
     console.log(fanButton.value);
     let fanControlMessage = ''
 
@@ -266,6 +308,9 @@ monitorAuthState().then( async  (user)=>{
     const exhaustControlCard = document.getElementById("exhaustControlCard")
     const exhaustPowerIcon   = document.getElementById("exhaustPowerIcon")
 
+    document.getElementById("exhaustCurrentSettings").style.display = "none";
+    document.getElementById("exhaustModeLabel").innerHTML = "Manual";
+
     console.log(exhaustButton.value);
     let exhaustControlMessage = ''
 
@@ -291,6 +336,9 @@ monitorAuthState().then( async  (user)=>{
     const waterIcon         = document.getElementById("waterIcon")
     const waterControlCard  = document.getElementById("waterControlCard")
     const waterPowerIcon    = document.getElementById("waterPowerIcon")
+
+    document.getElementById("waterCurrentSettings").style.display = "none";
+    document.getElementById("waterModeLabel").innerHTML = "Manual";
 
     console.log(waterButton.value);
     let waterControlMessage = ''

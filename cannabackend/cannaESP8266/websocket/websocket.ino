@@ -75,10 +75,10 @@ int GPIO_WATER   = 2;
 //Light Control Variables
 int lightAuto       = 0;
 int lightOn         = 1;  //0 is ON, 1 is OFF
-int lightHourOn     = 17;
-int lightMinuteOn   = 52;
-int lightHourOf     = 17;
-int lightMinuteOff  = 53;
+int lightHourOn     = 99;
+int lightMinuteOn   = 99;
+int lightHourOf     = 99;
+int lightMinuteOff  = 99;
 
 //Fan Control Variables
 int fanAuto       = 0;
@@ -214,6 +214,9 @@ void mainSetup(){
   
   //set config save notify callback (is there a case where I dont want it to be saved? not sure this is necessary..)
   wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  //If you need to set a timeout so the ESP doesn't hang waiting to be configured, for instance after a power failure
+  wifiManager.setConfigPortalTimeout( 60 * 2 ); //seconds
   //set static ip
   //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
   //wifiManager.autoConnect("Cannastation");
@@ -762,16 +765,27 @@ void loop() {
       ///////////////////////////////////////////// END OF SEND SENSOR DATA /////////////////////////////////////////////
   
       ///////////////////////////////////////////// SEND CONTROL DATA /////////////////////////////////////////////
-  
+
+      String lightOnAt = String(lightHourOn) + ":" + String(lightMinuteOn);
+      String lightOffAt = String(lightHourOf) + ":" + String(lightMinuteOff);
+    
       DynamicJsonDocument controlDoc(1024);
       controlDoc["type"] = "controlState";
       controlDoc["lightAuto"] = lightAuto; 
+      controlDoc["lightOnAt"] = lightOnAt;
+      controlDoc["lightOffAt"] = lightOffAt;
       controlDoc["lightOn"] = lightOn;
       controlDoc["fanAuto"] = fanAuto; 
+      controlDoc["fanTempOn"] = fanTempOn;
       controlDoc["fanOn"] = fanOn;
       controlDoc["exhaustAuto"] = exhaustAuto; 
+      controlDoc["exhaustAirHumidityOn"] = exhaustAirHumidityOn; 
       controlDoc["exhaustOn"] = exhaustOn;
-      controlDoc["waterAuto"] = waterAuto; 
+      controlDoc["waterAuto"] = waterAuto;
+      controlDoc["waterEveryXDay"] = waterEveryXDay;
+      controlDoc["waterStartingHour"] = waterStartingHour;
+      controlDoc["waterDurationSeconds"] = waterDurationSeconds;
+
       controlDoc["waterOn"] = waterOn;
       serializeJson(controlDoc, Serial);
       
